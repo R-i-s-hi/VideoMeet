@@ -1,0 +1,90 @@
+.lp-container {
+  width: 100vw;
+  height: 100vh;
+  background: url("../public/background.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.lp-container nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin-top: 3rem;
+  padding: 0 3.5rem;
+  background-color: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-name {
+  color: white;
+  font-size: 1.8rem;
+}
+
+#nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+#nav-links .link {
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.904);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+#nav-links .link button {
+  background-color: #ff9839;
+  padding: 0.5rem 2.5rem;
+  color: rgba(255, 255, 255, 0.904);
+  border: none;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#nav-links .link:hover , #nav-links .link button:hover {
+  color: white;
+}
+
+.lp-main {
+  position: relative;
+  top: 8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20rem;
+}
+
+.lp-main h1 {
+  color: white;
+  font-size: 50px;
+}
+
+.lp-main h3 {
+  color: white;
+  font-size: 22px;
+  font-weight: 400;
+  margin-block: 1rem;
+}
+
+.lp-main button {
+  background-color: #ff9839;
+  margin-top: 1rem;
+  padding: 0.5rem 2.5rem;
+  color: rgba(255, 255, 255, 0.904);
+  border: none;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.lp-main > div {
+  margin-top: -5px !important;
+}
