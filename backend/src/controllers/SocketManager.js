@@ -60,12 +60,17 @@ export const connectToSocket = (server) => {
 
 
       // Notify the joining user about existing users
-      const existingPeers = currentClients.filter(id => id !== socket.id);
-      existingPeers.forEach((peerId) => {
-        const peerSocket = io.sockets.sockets.get(peerId);
-        const peerUsername = peerSocket?.data?.username || "Guest";
-        io.to(socket.id).emit("user-joined", peerId, existingPeers, peerUsername); 
-      });
+      // Send existing users to the joining user in a single payload
+      const existingUsers = currentClients
+        .filter(id => id !== socket.id)
+        .map(peerId => {
+          const peerSocket = io.sockets.sockets.get(peerId);
+          const peerUsername = peerSocket?.data?.username || "Guest";
+          return { id: peerId, username: peerUsername };
+        });
+
+      io.to(socket.id).emit("existing-users", existingUsers);
+
 
       // Send chat history
       if (!messages[path]) messages[path] = [];
@@ -93,6 +98,24 @@ export const connectToSocket = (server) => {
         io.to(peerId).emit("chat-message", data, sender, time, socket.id);
       });
     });
+
+    socket.on("video-toggle", ({ socketId, enabled }) => {
+      const [roomKey] = Object.entries(connections).find(([, ids]) =>
+        ids.includes(socket.id)
+      ) || [];
+
+      if (!roomKey) return;
+
+      connections[roomKey].forEach(peerId => {
+        if (peerId !== socket.id) {
+          io.to(peerId).emit("video-toggle", {
+            socketId,
+            enabled
+          });
+        }
+      });
+    });
+
 
     socket.on("leave-call", () => {
       // Find which room the user is in

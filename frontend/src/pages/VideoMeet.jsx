@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState, useRef } from "react";
 import { TextField, Button, IconButton, Badge } from "@mui/material";
 import Draggable from 'react-draggable';
@@ -32,10 +33,10 @@ var connections = {};
 function VideoMeetComponent() {
 
   var socketRef = useRef(); // Websocket Instance
-  const videoRef = useRef([]); // All video streams
   let socketIdRef = useRef(); // socketID instance
   let localVideoRef = useRef(); // local video instance(User video)
   let userMediaStreamRef = useRef(); // local video/audio stream instance
+  const peerNames = useRef({});
 
   let [video, setVideo] = useState(true); // video permission
   let [audio, setAudio] = useState(true); // audio permission
@@ -58,29 +59,25 @@ function VideoMeetComponent() {
   const [time, setTime] = useState(''); // time storing
   const nodeRef = useRef(null);
   const scrollAnchor = useRef(null);
-
-  // --- tbd ---
-  useEffect(() => {
-    console.log("Current videos[] state:", videos);
-  }, [videos]);
+  const receivedStreams = new Set();
 
   useEffect(() => {
-  scrollAnchor.current?.scrollIntoView({ behavior: "smooth" });
-}, [messages]);
+    scrollAnchor.current?.scrollIntoView({ behavior: "auto" });
+  }, [messages]);
 
-  // --- Clear stream chache ---
+  // --- Clear stream chache & sockets ---
   useEffect(() => {
     return () => {
       console.log("Cleaning up resources...");
-      
-      // 1. Media streams
+
+      // 1. Stop Media Streams
       [localVideoRef.current?.srcObject, userMediaStreamRef.current, window.localStream]
         .filter(Boolean)
         .forEach(stream => {
-          stream.getTracks().forEach(track => track.stop());
+          stopMediaTracks(stream);
         });
 
-      // 2. Peer connections
+      // 2. Close Peer Connections
       Object.values(connections).forEach(peer => {
         try {
           peer.close();
@@ -90,11 +87,13 @@ function VideoMeetComponent() {
       });
       connections = {};
 
-      // 3. Socket
+      // 3. Socket Cleanup
       if (socketRef.current) {
-        socketRef.current.off();
+        socketRef.current.off?.();
         socketRef.current.disconnect();
       }
+
+      // 4. Reset Local State
       setUsername("");
       setAskForUsername(true);
     };
@@ -114,6 +113,7 @@ function VideoMeetComponent() {
 
     return () => clearInterval(timer);
   }, []);
+
 
   // if(isChrome() === false) {
 
@@ -176,12 +176,17 @@ function VideoMeetComponent() {
       
       if (userMediaStream && localVideoRef.current) {
         userMediaStreamRef.current = userMediaStream;
-        localVideoRef.current.srcObject = userMediaStream;
+        if (localVideoRef.current.srcObject !== userMediaStream) {
+          localVideoRef.current.srcObject = userMediaStream;
+        }
 
         localVideoRef.current.onloadedmetadata = () => {
-          localVideoRef.current
-            .play()
-            .catch((err) => console.error("Playback error:", err));
+
+          if (localVideoRef.current.paused) {
+            localVideoRef.current
+              .play()
+              .catch((err) => console.error("Playback error:", err));
+          }
         };
       } else {
         console.log("no userMediaStream or localVideoRef");
@@ -200,7 +205,9 @@ function VideoMeetComponent() {
         window.localStream &&
         typeof window.localStream.getTracks === "function"
       ) {
-        stopMediaTracks(window.localStream);
+        if (window.localStream && window.localStream !== stream) {
+          stopMediaTracks(window.localStream);
+        }
       }
     } catch (e) {
       console.log("getTracks error:", e);
@@ -208,14 +215,18 @@ function VideoMeetComponent() {
 
     // if there is no stream add the stream 
     window.localStream = stream; // save new stream
-    localVideoRef.current.srcObject = stream; // display stream
+    if (localVideoRef.current.srcObject !== stream) {
+      localVideoRef.current.srcObject = stream;
+    } // display stream
 
     // play the stream after adding
     if (localVideoRef.current) {
       localVideoRef.current.onloadedmetadata = () => {
-        localVideoRef.current
+        if (localVideoRef.current.paused) {
+          localVideoRef.current
           .play()
           .catch((e) => console.error("Playback error:", e));
+        }
       };
     }
 
@@ -254,7 +265,9 @@ function VideoMeetComponent() {
             let blackSilence = (...args) =>
               new MediaStream([black(...args), silence()]);
             window.localStream = blackSilence();
-            localVideoRef.current.srcObject = window.localStream;
+            if (localVideoRef.current.srcObject !== window.localStream) {
+              localVideoRef.current.srcObject = window.localStream;
+            }
           })
       );
     };
@@ -274,11 +287,15 @@ function VideoMeetComponent() {
           video: video && hasVideo,
           audio: audio && hasAudio,
         });
-        localVideoRef.current.srcObject = stream;
+        if (localVideoRef.current.srcObject !== stream) {
+          localVideoRef.current.srcObject = stream;
+        }
         localVideoRef.current.onloadedmetadata = () => {
-          localVideoRef.current
+          if (localVideoRef.current.paused) {
+            localVideoRef.current
             .play()
             .catch((err) => console.error("playback error:", err));
+          }
         };
         getUserMediaSuccess(stream);
       } else {
@@ -293,18 +310,24 @@ function VideoMeetComponent() {
       console.error("Failed to get media:", e);
       // Fallback to black/silence if getUserMedia fails
       window.localStream = new MediaStream([black(), silence()]);
-      localVideoRef.current.srcObject = window.localStream;
+      if (localVideoRef.current.srcObject !== window.localStream) {
+        localVideoRef.current.srcObject = window.localStream;
+      }
     }
   };
 
   let getDisplayMediaSuccess = async (stream) => {
     // stop old stream
-    stopMediaTracks(window.localStream);
+    if (window.localStream && window.localStream !== stream) {
+      stopMediaTracks(window.localStream);
+    }
 
     window.localStream = stream;
 
     // Set local video
-    localVideoRef.current.srcObject = stream;
+    if (localVideoRef.current.srcObject !== stream) {
+      localVideoRef.current.srcObject = stream;
+    }
 
     await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -325,9 +348,13 @@ function VideoMeetComponent() {
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: true })
         .then((camStream) => {
-          stopMediaTracks(window.localStream); // stop the old screen stream, not the cam stream
+          if (window.localStream && window.localStream !== stream) {
+            stopMediaTracks(window.localStream);
+          } // stop the old screen stream, not the cam stream
           window.localStream = camStream;
-          localVideoRef.current.srcObject = camStream;
+          if (localVideoRef.current.srcObject !== camStream) {
+            localVideoRef.current.srcObject = camStream;
+          }
           replaceStreamTracks(camStream);
         })
         .catch((err) => {
@@ -342,9 +369,13 @@ function VideoMeetComponent() {
       // Screen was just turned OFF, fallback to camera
       navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(camStream => {
-          stopMediaTracks(window.localStream);
+          if (window.localStream && window.localStream !== camStream) {
+            stopMediaTracks(window.localStream);
+          }
           window.localStream = camStream;
-          localVideoRef.current.srcObject = camStream;
+          if (localVideoRef.current.srcObject !== camStream) {
+            localVideoRef.current.srcObject = camStream;
+          }
           replaceStreamTracks(camStream);
         })
         .catch(console.error);
@@ -355,7 +386,9 @@ function VideoMeetComponent() {
       navigator.mediaDevices
         .getDisplayMedia({ video: true, audio: true })
         .then((stream) => {
-          stopMediaTracks(window.localStream); // stop only after permission
+          if (window.localStream && window.localStream !== stream) {
+            stopMediaTracks(window.localStream);
+          } // stop only after permission
           getDisplayMediaSuccess(stream); // proceed normally
         })
         .catch((e) => {
@@ -366,27 +399,9 @@ function VideoMeetComponent() {
     }
   };
 
-  // whenever video/audio change getUserMedia handles the stream
-  useEffect(() => {
-    if (video !== undefined && audio !== undefined) {
-      const timer = setTimeout(() => getUserMedia(), 300); // Debounce
-      return () => clearTimeout(timer);
-    }
-  }, [audio, video]);
-
   // --- Check for permission automatically ---
   useEffect(() => {
     getPermissions();
-  }, []);
-
-  // --- Clear stream chache & sockets automatically ---
-  useEffect(() => {
-    return () => {
-      stopMediaTracks(localVideoRef.current?.srcObject);
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-    };
   }, []);
 
   // --- Trigger only after UI switches(handle user stream after entering username) ---
@@ -412,55 +427,107 @@ function VideoMeetComponent() {
     }
   }, [screen]);
 
-  useEffect(() => {
-    console.log(" Current peer video list:", videos);
-  }, [videos]);
+  const replaceStreamTracks = (newStream) => {
+    Object.keys(connections).forEach((id) => {
+      if (id === socketIdRef.current) return;
 
-  async function replaceStreamTracks(newStream) {
-    window.localStream = newStream;
+      const senderVideo = connections[id]?.getSenders?.().find(s => s.track?.kind === "video");
+      const senderAudio = connections[id]?.getSenders?.().find(s => s.track?.kind === "audio");
 
-    for (const id of Object.keys(connections)) {
-      const peer = connections[id];
-      if (!peer) continue;
+      const newVideoTrack = newStream.getVideoTracks()[0];
+      const newAudioTrack = newStream.getAudioTracks()[0];
 
-      const videoTrack = newStream.getVideoTracks()[0];
-      const audioTrack = newStream.getAudioTracks()[0];
-
-      const senders = peer.getSenders();
-
-      senders.forEach(sender => {
-    console.log("Sender:", sender.track?.kind, sender);
-  });
-
-      senders.forEach(sender => {
-        if (sender.track?.kind === "video" && videoTrack) {
-          sender.replaceTrack(videoTrack).catch(console.error);
-        } else if (sender.track?.kind === "audio" && audioTrack) {
-          sender.replaceTrack(audioTrack).catch(console.error);
-        }
-      });
-
-      // Inside replaceStreamTracks:
-      senders.forEach(sender => {
-        if (sender.track?.kind === "video" && videoTrack) {
-          sender.replaceTrack(videoTrack).catch(console.error);
-        } else if (sender.track?.kind === "audio" && audioTrack) {
-          sender.replaceTrack(audioTrack).catch(console.error);
-        }
-      });
-    }
-  } 
-
-  let handleVideo = () => {
-    const videoTrack = window.localStream?.getVideoTracks?.()[0];
-    if (videoTrack) videoTrack.enabled = !videoTrack.enabled;
-    setVideo(prev => !prev);
+      if (senderVideo && senderVideo.track !== newVideoTrack) {
+        senderVideo.replaceTrack(newVideoTrack).catch(console.error);
+      }
+      if (senderAudio && senderAudio.track !== newAudioTrack) {
+        senderAudio.replaceTrack(newAudioTrack).catch(console.error);
+      }
+    });
   };
 
-  let handleAudio = () => {
+  const handleVideo = async () => {
+    try {
+      if (video) return; 
+
+      const camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const videoTrack = camStream.getVideoTracks()[0];
+
+      if (!videoTrack) {
+        console.error("No video track received.");
+        return;
+      }
+
+      videoTrack.enabled = true;
+
+      const newStream = new MediaStream([
+        videoTrack,
+        ...window.localStream.getAudioTracks()
+      ]);
+
+      // Update local video view
+      if (localVideoRef.current) {
+        if (localVideoRef.current.srcObject !== newStream) {
+          localVideoRef.current.srcObject = newStream;
+          localVideoRef.current.play().catch(console.error);
+        }
+      }
+
+      // Replace localStream and inform peers
+      window.localStream = newStream;
+      replaceStreamTracks(newStream);
+      setVideo(true);
+
+      socketRef.current.emit("video-toggle", {
+        socketId: socketIdRef.current,
+        enabled: true,
+      });
+
+      console.log("Tracks in stream:", window.localStream?.getTracks().map(t => `${t.kind}: ${t.label}`));
+
+    } catch (err) {
+      console.error("handleVideo error:", err);
+    }
+  };
+
+  const handleVideoOff = () => {
+    const silentVideo = black();
+    const newStream = new MediaStream([
+      silentVideo,
+      ...window.localStream.getAudioTracks(),
+    ]);
+
+    silentVideo.enabled = false;
+
+    window.localStream = newStream;
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = newStream;
+      localVideoRef.current.play().catch(console.error);
+    }
+
+    replaceStreamTracks(newStream);
+    setVideo(false);
+
+    socketRef.current.emit("video-toggle", {
+      socketId: socketIdRef.current,
+      enabled: false,
+    });
+  };
+
+  const handleAudio = () => {
     const audioTrack = window.localStream?.getAudioTracks?.()[0];
-    if (audioTrack) audioTrack.enabled = !audioTrack.enabled;
-    setAudio(prev => !prev);
+    if (!audioTrack) return;
+
+    const newEnabled = !audioTrack.enabled;
+    audioTrack.enabled = newEnabled;
+    setAudio(newEnabled);
+
+    replaceStreamTracks(window.localStream);
+
+    socketRef.current.emit("audio-toggle", {
+      socketId: socketIdRef.current,
+      enabled: newEnabled,
+    });
   };
 
   let handleScreen = () => {
@@ -513,7 +580,7 @@ function VideoMeetComponent() {
 
       // 4. Clear state
       setVideos([]);
-      videoRef.current = [];
+      receivedStreams.clear();
 
       // 5. Navigate after cleanup
       setTimeout(() => route("/home"), 100);
@@ -523,44 +590,50 @@ function VideoMeetComponent() {
     }
   };
 
-  const PeerVideo = ({ stream, muted, username }) => {
-    const videoRef = useRef();
+const PeerVideo = ({ stream, username, socketId, videoEnabled, audioEnabled }) => {
+  const videoRef = useRef(null);
 
-    useEffect(() => {
+useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+      const handleMetadata = () => {
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(err =>
+              console.error(`Playback error for ${username}:`, err)
+            );
+          }
+        }, 0); // short delay to avoid premature play call
+      };
+      videoRef.current.onloadedmetadata = handleMetadata;
+    }
 
-      if (!stream) {
-        console.warn("No stream for peer:", username);
-        return;
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.onloadedmetadata = null;
       }
+    };
+  }, [stream]);
 
-      console.log("<PeerVideo /> mounted for:", username);
-      console.log("Assigned stream:", stream);
+  return (
+    <div className={styles.peerVideoContainer}>
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={!audioEnabled}
+        style={{ width: '100%', backgroundColor: 'black' }}
+      />
+      <p>{username}</p>
+    </div>
+  );
+};
 
-      if (videoRef.current && stream) {
-        if (videoRef.current.srcObject !== stream) {
-          videoRef.current.srcObject = stream;
-        }
-
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            if (err.name === "AbortError") {
-              console.warn("play() was aborted, likely due to a new stream being set.");
-            } else {
-              console.error("Playback error:", err);
-            }
-          });
-        }
-      }
-    }, [stream]);
-
-    return (
-      <div className={styles.peerVideoContainer}>
-        <video autoPlay playsInline muted={muted} ref={videoRef} style={{ width: "100%", height: "100%"}}/>
-        <p>{username}</p>
-      </div>
-    );
-  };
+const MemoPeerVideo = React.memo(PeerVideo, (prev, next) =>
+  prev.socketId === next.socketId &&
+  prev.audioEnabled === next.audioEnabled &&
+  prev.videoEnabled === next.videoEnabled
+);
 
   // --- Handle "chat-message" socket events ---
   let addMessage = (data, sender, socketIdSender) => {
@@ -574,10 +647,10 @@ function VideoMeetComponent() {
     }
   };
 
-
   // --- Handle creation of new Peer connection ---
-  const createPeerConnection = async (peerId, isPolite) => {
+  const createPeerConnection = async (peerId, isPolite, peerUsername) => {
 
+    // prevent duplicate
     if (connections[peerId]) {
       console.warn(`Already have connection for ${peerId}`);
       return connections[peerId];
@@ -585,12 +658,16 @@ function VideoMeetComponent() {
 
     console.log("Creating new peer connection for:", peerId);
 
+
     const peer = new RTCPeerConnection(peerConfigConnections);
-    connections[peerId] = peer;
+    peer.username = peerUsername || peerId;
+    peerNames.current[peerId] = peer.username;
 
     peer.isPolite = isPolite;
     peer._queuedCandidates = [];
-
+    peer.isMakingOffer = false;
+    
+    connections[peerId] = peer;
     // Track received from remote peer
     peer.ontrack = (event) => {
 
@@ -598,14 +675,51 @@ function VideoMeetComponent() {
       console.log("event.streams:", event.streams);
 
       const stream = event.streams[0];
-      const streamKey = `${peerId}-${stream.id}`;
+      const streamKey = `${peerId}-${stream.id}`; 
 
-      setVideos(prev => [
-        ...prev.filter(v => v.key !== streamKey),
-        { socketId: peerId, stream, muted: false, username: peer.username || peerId, key: streamKey }
-      ]);
+      if (receivedStreams.has(streamKey)) {
+        console.warn("Stream already received, skipping duplicate:", streamKey);
+        return;
+      }
 
-      console.log(`Received stream from ${peerId}`);
+      const videoTrack = stream.getVideoTracks()[0];
+      const audioTrack = stream.getAudioTracks()[0];
+      console.log("🎥 videoTrack info:", {
+        label: videoTrack?.label,
+        enabled: videoTrack?.enabled,
+        readyState: videoTrack?.readyState,
+      });
+
+      setTimeout(() => {
+        const videoTrack = stream.getVideoTracks()[0];
+        if (!videoTrack || videoTrack.readyState !== "live") {
+          console.warn("Rejected non-live stream from", peerId);
+          console.log("Stream tracks for", peerId, stream.getTracks().map(t => `${t.kind}:${t.readyState}`));
+          return;
+        }
+
+        receivedStreams.add(streamKey);
+
+        setVideos((prev) => {
+          // Remove any video already from this peer (even if stream changed)
+          const withoutDuplicate = prev.filter(v => v.socketId !== peerId);
+          return [
+            ...withoutDuplicate,
+            {
+              key: streamKey,
+              socketId: peerId,
+              stream,
+              muted: false,
+              username: peer.username || peerId,
+              audioEnabled: audioTrack?.enabled ?? true,
+              videoEnabled: videoTrack?.enabled ?? true
+            }
+          ];
+        });
+
+
+        console.log(`Received and set video for ${peerId}`);
+      }, 100);
     };
 
     // Send local ICE candidates
@@ -615,9 +729,16 @@ function VideoMeetComponent() {
       }
     };
     
-    // Negotiation
-    peer.isMakingOffer = false;
+    // Add local tracks
+    const localStream = localVideoRef.current?.srcObject;
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        peer.addTrack(track, localStream);
+        console.log(`Added local ${track.kind} track to peer ${peerId}`);
+      });
+    } 
 
+    // Negotiation
     peer.onnegotiationneeded = async () => {
       console.log("onnegotiationneeded triggered for", peerId);
 
@@ -642,17 +763,6 @@ function VideoMeetComponent() {
       }
     };
 
-    // Add local tracks
-    const localStream = localVideoRef.current?.srcObject;
-    if (localStream) {
-      localStream.getTracks().forEach(track => {
-        peer.addTrack(track, localStream);
-        console.log(`Added local ${track.kind} track to peer ${peerId}`);
-      });
-    } else {
-      console.warn("No local stream found when creating peer");
-    }
-
     return peer;
   };
 
@@ -661,13 +771,13 @@ function VideoMeetComponent() {
     console.warn("Role conflict with", peerId);
 
     // 1. Clean up old connection
-    if (connections[peerId]) {
-      try {
+    try {
+      if (connections[peerId]) {
         connections[peerId].close();
-      } catch (e) {
-        console.error("Error closing peer:", e);
+        delete connections[peerId];
       }
-      delete connections[peerId];
+    } catch (e) {
+      console.error("Error closing peer:", e);
     }
 
     // 2. Remove from UI
@@ -677,33 +787,49 @@ function VideoMeetComponent() {
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
 
     // 4. Recreate full connection
-    await createPeerConnection(peerId);
+    const peerUsername = peerNames.current[peerId] || peerId;
+    const newPeer = await createPeerConnection(peerId, socketIdRef.current > peerId, peerUsername);
+    newPeer._queuedCandidates = [];
+
+    // Force new negotiation manually
+    if (newPeer.signalingState === "stable" && !newPeer.isMakingOffer) {
+      try {
+        newPeer.isMakingOffer = true;
+        const offer = await newPeer.createOffer();
+        await newPeer.setLocalDescription(offer);
+        socketRef.current.emit("signal", peerId, JSON.stringify({ sdp: newPeer.localDescription }));
+      } catch (e) {
+        console.error("Renegotiation failed after role conflict:", e);
+      } finally {
+        newPeer.isMakingOffer = false;
+      }
+    }
   };
 
   // --- Handles incoming signaling messages from other peers via socket:(SDP/ICE Candidate) ---
   const gotMessageFromServer = async (fromId, rawMessage) => {
     console.log("gotMessageFromServer triggered from", fromId);
 
+    if (fromId === socketIdRef.current) return; // skip yourself
+    
+
+    let signal;
     try {
-
-      if (fromId === socketIdRef.current) return; // skip yourself
-
-      let signal;
-      try {
-        signal = JSON.parse(rawMessage);
-      } catch (err) {
-        console.error("Invalid JSON from", fromId, rawMessage);
-        return;
-      }
+      signal = JSON.parse(rawMessage);
+    } catch (err) {
+      console.error("Invalid JSON from", fromId, rawMessage);
+      return;
+    }
+    
+    try {
 
       console.log("Got signal from", fromId, signal.sdp?.type || "ICE");
 
+      if (!peerNames.current[fromId]) peerNames.current[fromId] = fromId;
+      const peerUsername = peerNames.current[fromId];
       // Always ensure peer exists
-      const peer = connections[fromId] || await createPeerConnection(fromId);
-
-      if (peer.isPolite === undefined) {
-        peer.isPolite = socketIdRef.current > fromId;
-      }
+      const isPolite = socketIdRef.current > fromId;
+      const peer = connections[fromId] || await createPeerConnection(fromId, isPolite, peerUsername);
 
       // --- SDP Handling ---
       if (signal.sdp) {
@@ -713,83 +839,90 @@ function VideoMeetComponent() {
         // State validation
         const isOffer = description.type === "offer";
 
-        // Prevent offer clash
-        const polite = peer.isPolite; 
-        const stable = peer.signalingState === "stable";
-
         const offerCollision = isOffer &&
-          (!polite || !stable || peer.isMakingOffer);
+          (peer.isMakingOffer || peer.signalingState !== "stable");
 
         if (offerCollision) {
           console.warn("Offer collision with", fromId);
+
+          if (!peer.isPolite) {
+            console.warn("Offer collision: impolite peer ignoring offer from", fromId);
+            await handleRoleConflict(fromId);
+            return;
+          }
+
           // Rollback and wait for their offer
-          await peer.setLocalDescription({ type: "rollback" });
-          console.log("Rolled back local description due to offer collision");
+          try {
+            await peer.setLocalDescription({ type: "rollback" });
+            console.log("Rolled back due to offer collision");
+          } catch (e) {
+            console.error("Rollback failed", e);
+          }
 
+        }
+
+        if (
+          peer.remoteDescription &&
+          peer.remoteDescription.type === description.type &&
+          peer.remoteDescription.sdp === description.sdp
+        ) {
+          console.log("Duplicate remote SDP, skipping");
+          return;
+        }
+
+        if (
+          description.type === "answer" &&
+          peer.signalingState === "stable"
+        ) {
+          console.warn("Received an answer but we're already stable — ignoring late answer");
+          return;
+        }
+
+        try {
           await peer.setRemoteDescription(description);
-          console.log("setRemoteDescription (after rollback) from", fromId);
-
-          const answer = await peer.createAnswer();
-          await peer.setLocalDescription(answer);
-          console.log("Created answer after offer collision", answer);
-
-          socketRef.current.emit("signal", fromId, JSON.stringify({ sdp: peer.localDescription }));
+          console.log(`setRemoteDescription(${description.type}) from ${fromId}`);
+        } catch (e) {
+          console.error("setRemoteDescription failed:", e);
+          await handleRoleConflict(fromId);
           return;
         }
 
-        // Critical section - prevent race conditions
-        console.log("Setting remote description of type:", description.type);
-        console.log("signalingState before setRemoteDesc:", peer.signalingState);
-
-        if (description.type === "answer" && peer.signalingState !== "have-local-offer") {
-          console.warn(`Skipping invalid answer: signalingState is ${peer.signalingState}`);
-          return;
+        if (isOffer) {
+          try {
+            const answer = await peer.createAnswer();
+            await peer.setLocalDescription(answer);
+            socketRef.current.emit("signal", fromId, JSON.stringify({ sdp: peer.localDescription }));
+            console.log(`Sent answer to ${fromId}`);
+          } catch (e) {
+            console.error("Failed to create/send answer:", e);
+          }
         }
 
-
-        await peer.setRemoteDescription(description)
-          .then(() => {console.log(`setRemoteDescription(${description.type}) from ${fromId}`)})
-          .catch(e => {
-            console.error("setRemoteDescription failed:", e);
-            throw e;
-          });
-          console.log("signalingState after setRemoteDesc:", peer.signalingState);
-
-        if (peer._queuedCandidates?.length) {
+        const flushIce = async () => {
+          if (peer.signalingState !== "stable") {
+            setTimeout(flushIce, 100);
+            return;
+          }
           for (const candidate of peer._queuedCandidates) {
             try {
               await peer.addIceCandidate(new RTCIceCandidate(candidate));
-              console.log("Flushed queued ICE:", candidate);
             } catch (err) {
               console.error("Error adding queued ICE:", err);
             }
           }
-          peer._queuedCandidates = []; // clear after flush
-        }
-
-        
-        console.log("Remote description set for", fromId, peer.remoteDescription.sdp);
-        console.log("Receivers after remote desc:", peer.getReceivers());
-
-        // Answer handling
-        if (isOffer) {
-          const answer = await peer.createAnswer();
-          await peer.setLocalDescription(answer);
-          console.log("Created answer", answer);
-          socketRef.current.emit("signal", fromId, JSON.stringify({ sdp: peer.localDescription })).then(() => console.log("sent answer: ", peer.localDescription));
-          console.log(`Sent answer to ${fromId}`);
-        }
+          peer._queuedCandidates = [];
+        };
+        flushIce();
 
       }
 
       // --- ICE handling ---
-      else if (signal.ice) {
+      else if (signal.ice) {  
         try {
-          if (peer.remoteDescription) {
+          if (peer.remoteDescription && peer.remoteDescription.type) {
             await peer.addIceCandidate(new RTCIceCandidate(signal.ice)).then(() => console.log("added ICE Candidate: ", signal.ice));
             console.log(`Added ICE from ${fromId}`);
           } else {
-            peer._queuedCandidates = peer._queuedCandidates || [];
             peer._queuedCandidates.push(signal.ice);
             console.log(`Queued ICE from ${fromId}`);
           }
@@ -822,56 +955,89 @@ function VideoMeetComponent() {
       socketIdRef.current = socketRef.current.id; // storing socketID
       const roomId = window.location.href; // using the website link as roomId (meeting ID)
 
-      socketRef.current.emit("join-call", roomId, username); 
+      socketRef.current.emit("join-call", roomId, username);
 
-      socketRef.current.on("chat-message", addMessage);
+      socketRef.current.on("existing-users", async (users) => {
+        for (const { id: clientId, username: peerUsername } of users) {
+          if (clientId === socketIdRef.current || connections[clientId]) continue;
 
-      socketRef.current.on("user-joined", async (id, clients, peerUsername) => {
-        
-        console.log("User joined:", id);
+          const peer = await createPeerConnection(clientId, socketIdRef.current > clientId, peerUsername);
 
-        if (!Array.isArray(clients)) clients = [clients]; // make sure clients is an array 
-        if (id === socketIdRef.current) return; // ignore yourself
-
-        const existingIds = new Set(videos.map(v => v.socketId));
-
-        for (const clientId of clients) {
-
-          // skip yourself to recreate connection
-          if (clientId === socketIdRef.current || existingIds.has(clientId)) continue;
-
-          // Always (re)create connection safely
-          const peer = await createPeerConnection(clientId, socketIdRef.current > clientId);
-
-          peer.username = peerUsername;
-          connections[clientId].username = peerUsername;
+          await new Promise(res => setTimeout(res, 200));
 
           if (peer.signalingState === "stable" && !peer.isMakingOffer) {
             try {
-              peer.isMakingOffer = true; // prevent re-entrant offers
-
+              peer.isMakingOffer = true;
               const offer = await peer.createOffer();
               await peer.setLocalDescription(offer);
-
               socketRef.current.emit("signal", clientId, JSON.stringify({ sdp: peer.localDescription }));
-              console.log(`[user-joined] Sent manual offer to ${clientId}`);
             } catch (err) {
-              console.error("Manual offer error:", err);
+              console.error("Offer error (existing-users):", err);
             } finally {
               peer.isMakingOffer = false;
             }
           }
         }
+      });
+
+      socketRef.current.on("chat-message", addMessage);
+
+      socketRef.current.on("video-toggle", ({ socketId, enabled }) => {
+        setVideos(prev =>
+          prev.map(v => v.socketId === socketId ? { ...v, videoEnabled: enabled } : v)
+        );
+      });
+
+      socketRef.current.on("audio-toggle", ({ socketId, enabled }) => {
+        setVideos((prev) =>
+          prev.map((v) =>
+            v.socketId === socketId ? { ...v, audioEnabled: enabled } : v
+          )
+        );
+      });
+
+      socketRef.current.on("user-joined", async (id, allClientIds, peerUsername) => {
+        if (id === socketIdRef.current || connections[id]) return;
+
+        console.log("New user joined:", id, peerUsername);
+
+        peerNames.current[id] = peerUsername;
+
+        const peer = await createPeerConnection(id, socketIdRef.current > id, peerUsername);
+
+        // Wait a bit to ensure tracks are properly attached
+        await new Promise(res => setTimeout(res, 200));
+
+        if (
+  peer.signalingState === "stable" &&
+  !peer.isMakingOffer &&
+  peer.isPolite // ONLY the polite peer should initiate
+) {
+  try {
+    peer.isMakingOffer = true;
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    socketRef.current.emit("signal", id, JSON.stringify({ sdp: peer.localDescription }));
+  } catch (err) {
+    console.error("Offer error (new joiner):", err);
+  } finally {
+    peer.isMakingOffer = false;
+  }
+} else {
+  console.warn(
+    `Skipping offer to ${id} — signalingState=${peer.signalingState}, isMakingOffer=${peer.isMakingOffer}, isPolite=${peer.isPolite}`
+  );
+}
 
       });
 
       socketRef.current.on("user-left", (id) => {
         setVideos((prev) => prev.filter((v) => v.socketId !== id));
-        videoRef.current = videoRef.current.filter((v) => v.socketId !== id);
 
         if (connections[id]) {
           connections[id].close();
           delete connections[id];
+          delete peerNames.current[id];
         }
       });
 
@@ -939,12 +1105,15 @@ return (
 
             {/* peer videos */}
             <div className={`${styles.conferenceView} ${videos.length >= 4 ? styles.twoRowGrid : ''}`}>
-              {videos.map((video) => (
-                  <PeerVideo  key={video.key}
-                    stream={video.stream}
-                    muted={video.muted}
-                    username={video.username}
-                  />
+              {videos.map(({ stream, username, socketId, videoEnabled, audioEnabled, key }) => (
+                <MemoPeerVideo
+                  key={key}
+                  stream={stream}
+                  username={username}
+                  socketId={socketId}
+                  videoEnabled={videoEnabled}
+                  audioEnabled={audioEnabled}
+                />
               ))}
             </div>
 
@@ -993,7 +1162,7 @@ return (
                     />
                     <button
                       onClick={sendMessage}
-                      style={{ width: "fit-content", onHover }}
+                      style={{ width: "fit-content"}}
                     >
                       <SendIcon style={{ color: "gray", fontSize: "20px" }} />
                     </button>
@@ -1010,7 +1179,7 @@ return (
               {time}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;{socketIdRef.current}
             </div>
             <div className={styles.buttonContainer}>
-              <IconButton id={video ? styles.btn1 : styles.btn2} onClick={handleVideo} style={{ color: "white" }}>
+              <IconButton id={video ? styles.btn1 : styles.btn2} onClick={video ? handleVideoOff : handleVideo} style={{ color: "white" }}>
                 {video ? <VideocamIcon /> : <VideocamOffIcon />}
               </IconButton>
               <IconButton id={audio ? styles.btn1 : styles.btn2} onClick={handleAudio} style={{ color: "white" }}>
@@ -1037,8 +1206,6 @@ return (
           </div>
 
         </div>
-
-
       </div>
     )}
   </div>

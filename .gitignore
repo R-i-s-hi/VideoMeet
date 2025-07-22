@@ -1,10 +1,6 @@
-# ZOOM/.gitignore
-
-# Ignore backend dependencies and env
 backend/node_modules/
 backend/.env
 
-# Ignore frontend dependencies and builds
 frontend/node_modules/
 frontend/build/
 frontend/.env
