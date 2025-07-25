@@ -116,6 +116,7 @@ export const connectToSocket = (server) => {
       });
     });
 
+    
 
     socket.on("leave-call", () => {
       // Find which room the user is in
