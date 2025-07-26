@@ -45,12 +45,12 @@ export const AuthProvider = ({children}) => {
                 username: username,
                 password: password
             });
-            console.log("Login response:", req.data);
+
             if(req.status === httpStatus.OK) {
                 localStorage.setItem("token", req.data.token);
-                console.log("Stored token:", localStorage.getItem("token"));
+                setTimeout(() => {router("/home")}, 1000)
+                return req.data.message;
             }
-
         } catch(err) {
             throw err;
         }
@@ -69,13 +69,15 @@ export const AuthProvider = ({children}) => {
         }
     }
 
-    const addToUserHistory = async () => {
+    const addToUserHistory = async (meetingCode) => {
+        console.log(`addToUserHistory() called for meetingCode: ${meetingCode}`);
         try {
             let request = await client.post("/add_to_activity", {
                 token: localStorage.getItem("token"),
                 meeting_code: meetingCode
             });
-            return request;
+            console.log(`Recieved from /add_to_activity: ${request}`)
+            return request.data.message;
         } catch (e) {
             throw e;
         }

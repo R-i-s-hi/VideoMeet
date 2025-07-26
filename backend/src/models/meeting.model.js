@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const meetingSchema = new Schema(
     {
-        useer_id: {
+        user_id: {
             type: String,
         },
         meetingCode: {
@@ -17,6 +17,4 @@ const meetingSchema = new Schema(
     }
 )
 
-const Meeting = mongoose.model("User", meetingSchema);
-
-export default {Meeting};
+export default mongoose.model("Meeting", meetingSchema);

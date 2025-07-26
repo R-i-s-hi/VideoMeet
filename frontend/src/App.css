@@ -93,15 +93,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-inline: 20px;
+  padding-block: 35px;
+  padding-inline: 40px;
   text-align: center;
-
+  background-color: rgba(255, 255, 255, 0.764);
+  box-shadow: 0px 3px 50px rgba(0, 0, 0, 0.05);
 }
 .meetContainer {
   display: flex;
   padding-inline: 20px;
   height: 80vh;
-  gap: 10vw;
+  gap: 15vw;
   justify-content: center;
 }
 

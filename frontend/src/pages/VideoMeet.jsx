@@ -1,7 +1,6 @@
 import React from "react";
 import { useEffect, useState, useRef } from "react";
 import { TextField, Button, IconButton, Badge } from "@mui/material";
-import Draggable from 'react-draggable';
 import VideocamIcon from "@mui/icons-material/Videocam";
 import VideocamOffIcon from "@mui/icons-material/VideocamOff";
 import MicIcon from "@mui/icons-material/Mic";
@@ -57,7 +56,7 @@ function VideoMeetComponent() {
   let [videos, setVideos] = useState([]); // store all video present in a media stream
 
   const [time, setTime] = useState(''); // time storing
-  const nodeRef = useRef(null);
+
   const scrollAnchor = useRef(null);
   const receivedStreams = new Set();
 
@@ -113,11 +112,6 @@ function VideoMeetComponent() {
 
     return () => clearInterval(timer);
   }, []);
-
-
-  // if(isChrome() === false) {
-
-  // }
 
   // --- Stop All Stream ---
   function stopMediaTracks(stream) {
@@ -428,202 +422,200 @@ function VideoMeetComponent() {
   }, [screen]);
 
   const debugStreamState = () => {
-  console.log('Current stream state:');
-  if (window.localStream) {
-    window.localStream.getTracks().forEach(track => {
-      console.log(`${track.kind} track:`, {
-        enabled: track.enabled,
-        readyState: track.readyState,
-        label: track.label
+    console.log('Current stream state:');
+    if (window.localStream) {
+      window.localStream.getTracks().forEach(track => {
+        console.log(`${track.kind} track:`, {
+          enabled: track.enabled,
+          readyState: track.readyState,
+          label: track.label
+        });
       });
-    });
-  } else {
-    console.log('No local stream');
-  }
-};
-
-const replaceStreamTracks = (newStream) => {
-  const newVideoTrack = newStream.getVideoTracks()[0];
-  const newAudioTrack = newStream.getAudioTracks()[0];
-
-  Object.keys(connections).forEach((peerId) => {
-    if (peerId === socketIdRef.current) return;
-    
-    const peer = connections[peerId];
-    if (!peer) return;
-
-    // Get all senders
-    const senders = peer.getSenders();
-    
-    // Replace video track if available
-    if (newVideoTrack) {
-      const videoSender = senders.find(s => s.track?.kind === 'video');
-      if (videoSender) {
-        videoSender.replaceTrack(newVideoTrack)
-          .then(() => {
-            console.log(`Successfully replaced video track for ${peerId}`);
-          })
-          .catch(err => {
-            console.error(`Failed to replace video track for ${peerId}:`, err);
-          });
-      }
-    }
-
-    // Replace audio track if available
-    if (newAudioTrack) {
-      const audioSender = senders.find(s => s.track?.kind === 'audio');
-      if (audioSender) {
-        audioSender.replaceTrack(newAudioTrack)
-          .then(() => {
-            console.log(`Successfully replaced audio track for ${peerId}`);
-          })
-          .catch(err => {
-            console.error(`Failed to replace audio track for ${peerId}:`, err);
-          });
-      }
-    }
-  });
-};
-
-const handleVideo = async () => {
-  try {
-    debugStreamState();
-    const currentStream = localVideoRef.current?.srcObject;
-    if (!currentStream) return;
-
-    // Get new video track
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: true,
-      audio: false // Keep audio separate
-    });
-
-    const videoTrack = stream.getVideoTracks()[0];
-    if (!videoTrack) throw new Error("No video track received");
-
-    // Stop old video tracks
-    currentStream.getVideoTracks().forEach(track => track.stop());
-
-    // Create new stream with new video and existing audio
-    const newStream = new MediaStream([
-      videoTrack,
-      ...currentStream.getAudioTracks()
-    ]);
-
-    // Ensure the track is enabled
-    videoTrack.enabled = true;
-
-    // Update local video reference
-    localVideoRef.current.srcObject = newStream;
-    window.localStream = newStream;
-
-    // Wait for stream to be ready
-    await new Promise(resolve => {
-      localVideoRef.current.onloadedmetadata = resolve;
-    });
-
-    // Replace tracks in all peer connections
-    replaceStreamTracks(newStream);
-    
-    // Update state and notify peers
-    setVideo(true);
-    socketRef.current.emit("video-toggle", {
-      socketId: socketIdRef.current,
-      enabled: true,
-    });
-
-  } catch (err) {
-    console.error("Error turning video on:", err);
-    setVideo(false);
-  }
-};
-
-const handleVideoOff = async () => {
-  try {
-    debugStreamState();
-    const currentStream = localVideoRef.current?.srcObject;
-    if (!currentStream) return;
-
-    // Stop existing video tracks
-    currentStream.getVideoTracks().forEach(track => track.stop());
-
-    // Create black video track
-    const blackVideoTrack = black();
-    blackVideoTrack.enabled = false;
-
-    // Create new stream with black video and existing audio
-    const newStream = new MediaStream([
-      blackVideoTrack,
-      ...currentStream.getAudioTracks()
-    ]);
-
-    // Update local video reference
-    localVideoRef.current.srcObject = newStream;
-    window.localStream = newStream;
-
-    // Replace tracks in all peer connections
-    replaceStreamTracks(newStream);
-    
-    // Update state and notify peers
-    setVideo(false);
-    socketRef.current.emit("video-toggle", {
-      socketId: socketIdRef.current,
-      enabled: false,
-    });
-
-  } catch (err) {
-    console.error("Error turning video off:", err);
-  }
-};
-
-const debugStream = (stream, name) => {
-  if (!stream) {
-    console.log(`${name}: No stream`);
-    return;
-  }
-  console.log(`${name} tracks:`, stream.getTracks().map(t => 
-    `${t.kind}: ${t.label} (enabled=${t.enabled}, readyState=${t.readyState})`
-  ));
-};
-
-// Use it in your functions like this:
-debugStream(localVideoRef.current?.srcObject, "Local Stream Before Change");
-
-const handleAudio = async () => {
-  try {
-    const currentStream = localVideoRef.current?.srcObject;
-    if (!currentStream) return;
-
-    const audioTracks = currentStream.getAudioTracks();
-    
-    if (audioTracks.length === 0) {
-      // No audio track exists - create one
-      const newStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const newAudioTrack = newStream.getAudioTracks()[0];
-      
-      // Add to existing stream
-      currentStream.addTrack(newAudioTrack);
-      replaceStreamTracks(currentStream);
-      setAudio(true);
     } else {
-      // Toggle existing audio track
-      const newEnabled = !audioTracks[0].enabled;
-      audioTracks[0].enabled = newEnabled;
-      setAudio(newEnabled);
-      
-      // Force update to peers
-      replaceStreamTracks(currentStream);
+      console.log('No local stream');
     }
+  };
 
-    // Notify peers
-    socketRef.current.emit("audio-toggle", {
-      socketId: socketIdRef.current,
-      enabled: audioTracks[0]?.enabled ?? false,
+  const replaceStreamTracks = (newStream) => {
+    const newVideoTrack = newStream.getVideoTracks()[0];
+    const newAudioTrack = newStream.getAudioTracks()[0];
+
+    Object.keys(connections).forEach((peerId) => {
+      if (peerId === socketIdRef.current) return;
+      
+      const peer = connections[peerId];
+      if (!peer) return;
+
+      // Get all senders
+      const senders = peer.getSenders();
+      
+      // Replace video track if available
+      if (newVideoTrack) {
+        const videoSender = senders.find(s => s.track?.kind === 'video');
+        if (videoSender) {
+          videoSender.replaceTrack(newVideoTrack)
+            .then(() => {
+              console.log(`Successfully replaced video track for ${peerId}`);
+            })
+            .catch(err => {
+              console.error(`Failed to replace video track for ${peerId}:`, err);
+            });
+        }
+      }
+
+      // Replace audio track if available
+      if (newAudioTrack) {
+        const audioSender = senders.find(s => s.track?.kind === 'audio');
+        if (audioSender) {
+          audioSender.replaceTrack(newAudioTrack)
+            .then(() => {
+              console.log(`Successfully replaced audio track for ${peerId}`);
+            })
+            .catch(err => {
+              console.error(`Failed to replace audio track for ${peerId}:`, err);
+            });
+        }
+      }
     });
+  };
 
-  } catch (err) {
-    console.error("Error toggling audio:", err);
-  }
-};
+  const handleVideo = async () => {
+    try {
+      debugStreamState();
+      const currentStream = localVideoRef.current?.srcObject;
+      if (!currentStream) return;
+
+      // Get new video track
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true,
+        audio: false // Keep audio separate
+      });
+
+      const videoTrack = stream.getVideoTracks()[0];
+      if (!videoTrack) throw new Error("No video track received");
+
+      // Stop old video tracks
+      currentStream.getVideoTracks().forEach(track => track.stop());
+
+      // Create new stream with new video and existing audio
+      const newStream = new MediaStream([
+        videoTrack,
+        ...currentStream.getAudioTracks()
+      ]);
+
+      // Ensure the track is enabled
+      videoTrack.enabled = true;
+
+      // Update local video reference
+      localVideoRef.current.srcObject = newStream;
+      window.localStream = newStream;
+
+      // Wait for stream to be ready
+      await new Promise(resolve => {
+        localVideoRef.current.onloadedmetadata = resolve;
+      });
+
+      // Replace tracks in all peer connections
+      replaceStreamTracks(newStream);
+      
+      // Update state and notify peers
+      setVideo(true);
+      socketRef.current.emit("video-toggle", {
+        socketId: socketIdRef.current,
+        enabled: true,
+      });
+
+    } catch (err) {
+      console.error("Error turning video on:", err);
+      setVideo(false);
+    }
+  };
+
+  const handleVideoOff = async () => {
+    try {
+      debugStreamState();
+      const currentStream = localVideoRef.current?.srcObject;
+      if (!currentStream) return;
+
+      // Stop existing video tracks
+      currentStream.getVideoTracks().forEach(track => track.stop());
+
+      // Create black video track
+      const blackVideoTrack = black();
+      blackVideoTrack.enabled = false;
+
+      // Create new stream with black video and existing audio
+      const newStream = new MediaStream([
+        blackVideoTrack,
+        ...currentStream.getAudioTracks()
+      ]);
+
+      // Update local video reference
+      localVideoRef.current.srcObject = newStream;
+      window.localStream = newStream;
+
+      // Replace tracks in all peer connections
+      replaceStreamTracks(newStream);
+      
+      // Update state and notify peers
+      setVideo(false);
+      socketRef.current.emit("video-toggle", {
+        socketId: socketIdRef.current,
+        enabled: false,
+      });
+
+    } catch (err) {
+      console.error("Error turning video off:", err);
+    }
+  };
+
+  const debugStream = (stream, name) => {
+    if (!stream) {
+      console.log(`${name}: No stream`);
+      return;
+    }
+    console.log(`${name} tracks:`, stream.getTracks().map(t => 
+      `${t.kind}: ${t.label} (enabled=${t.enabled}, readyState=${t.readyState})`
+    ));
+  };
+  debugStream(localVideoRef.current?.srcObject, "Local Stream Before Change");
+
+  const handleAudio = async () => {
+    try {
+      const currentStream = localVideoRef.current?.srcObject;
+      if (!currentStream) return;
+
+      const audioTracks = currentStream.getAudioTracks();
+      
+      if (audioTracks.length === 0) {
+        // No audio track exists - create one
+        const newStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const newAudioTrack = newStream.getAudioTracks()[0];
+        
+        // Add to existing stream
+        currentStream.addTrack(newAudioTrack);
+        replaceStreamTracks(currentStream);
+        setAudio(true);
+      } else {
+        // Toggle existing audio track
+        const newEnabled = !audioTracks[0].enabled;
+        audioTracks[0].enabled = newEnabled;
+        setAudio(newEnabled);
+        
+        // Force update to peers
+        replaceStreamTracks(currentStream);
+      }
+
+      // Notify peers
+      socketRef.current.emit("audio-toggle", {
+        socketId: socketIdRef.current,
+        enabled: audioTracks[0]?.enabled ?? false,
+      });
+
+    } catch (err) {
+      console.error("Error toggling audio:", err);
+    }
+  };
 
   let handleScreen = () => {
     setScreen((prev) => !prev);
@@ -685,57 +677,57 @@ const handleAudio = async () => {
     }
   };
 
-const PeerVideo = ({ stream, username, socketId, videoEnabled, audioEnabled }) => {
-  const videoRef = useRef(null);
+  const PeerVideo = ({ stream, username, socketId, videoEnabled, audioEnabled }) => {
+    const videoRef = useRef(null);
 
-useEffect(() => {
-  let cancelled = false;
-  const videoEl = videoRef.current;
+  useEffect(() => {
+    let cancelled = false;
+    const videoEl = videoRef.current;
 
-  if (!videoEl || !stream) return;
+    if (!videoEl || !stream) return;
 
-  try {
-    videoEl.srcObject = stream;
+    try {
+      videoEl.srcObject = stream;
 
-    const tryPlay = () => {
-      if (cancelled) return;
-      videoEl.play().catch((err) => {
-        console.warn("play() failed on remote video:", err);
-      });
+      const tryPlay = () => {
+        if (cancelled) return;
+        videoEl.play().catch((err) => {
+          console.warn("play() failed on remote video:", err);
+        });
+      };
+
+      if (videoEl.readyState >= 2) {
+        tryPlay();
+      } else {
+        videoEl.onloadedmetadata = tryPlay;
+      }
+    } catch (err) {
+      console.error("Failed to attach stream:", err);
+    }
+
+    return () => {
+      cancelled = true;
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.srcObject = null;
+      }
     };
+  }, [stream]);
 
-    if (videoEl.readyState >= 2) {
-      tryPlay();
-    } else {
-      videoEl.onloadedmetadata = tryPlay;
-    }
-  } catch (err) {
-    console.error("Failed to attach stream:", err);
-  }
 
-  return () => {
-    cancelled = true;
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.srcObject = null;
-    }
+    return (
+      <div className={styles.peerVideoContainer}>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={socketId === socketIdRef.current}
+          style={{ width: '100%', maxWidth: "1010px", backgroundColor: 'black' }}
+        />
+        <p>{username} {(!videoEnabled ? "(Video Off)" : "")}</p>
+      </div>
+    );
   };
-}, [stream]);
-
-
-  return (
-    <div className={styles.peerVideoContainer}>
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted={socketId === socketIdRef.current}
-        style={{ width: '100%', maxWidth: "1010px", backgroundColor: 'black' }}
-      />
-      <p>{username} {(!videoEnabled ? "(Video Off)" : "")}</p>
-    </div>
-  );
-};
 
   // --- Handle "chat-message" socket events ---
   let addMessage = (data, sender, socketIdSender) => {
@@ -750,92 +742,92 @@ useEffect(() => {
   };
 
   // --- Handle creation of new Peer connection ---
-const createPeerConnection = async (peerId, isPolite, peerUsername) => {
-  if (connections[peerId]) return connections[peerId];
+  const createPeerConnection = async (peerId, isPolite, peerUsername) => {
+    if (connections[peerId]) return connections[peerId];
 
-  const peer = new RTCPeerConnection(peerConfigConnections);
-  peer.username = peerUsername || peerId;
-  peerNames.current[peerId] = peer.username;
-  peer.isPolite = isPolite;
-  peer._queuedCandidates = [];
-  peer.isMakingOffer = false;
-  connections[peerId] = peer;
+    const peer = new RTCPeerConnection(peerConfigConnections);
+    peer.username = peerUsername || peerId;
+    peerNames.current[peerId] = peer.username;
+    peer.isPolite = isPolite;
+    peer._queuedCandidates = [];
+    peer.isMakingOffer = false;
+    connections[peerId] = peer;
 
-  peer.ontrack = (event) => {
-    const stream = event.streams[0];
-    const streamKey = `${peerId}-${stream.id}`;
-    if (receivedStreams.has(streamKey)) return;
+    peer.ontrack = (event) => {
+      const stream = event.streams[0];
+      const streamKey = `${peerId}-${stream.id}`;
+      if (receivedStreams.has(streamKey)) return;
 
-    const videoTrack = stream.getVideoTracks()[0];
-    const audioTrack = stream.getAudioTracks()[0];
-
-    setTimeout(() => {
       const videoTrack = stream.getVideoTracks()[0];
-      if (!videoTrack || videoTrack.readyState !== "live") return;
+      const audioTrack = stream.getAudioTracks()[0];
 
-      receivedStreams.add(streamKey);
+      setTimeout(() => {
+        const videoTrack = stream.getVideoTracks()[0];
+        if (!videoTrack || videoTrack.readyState !== "live") return;
 
-      setVideos((prev) => {
-        const withoutDuplicate = prev.filter(v => v.socketId !== peerId);
-        return [
-          ...withoutDuplicate,
-          {
-            key: streamKey,
-            socketId: peerId,
-            stream: new MediaStream(stream.getTracks()),
-            muted: false,
-            username: peerNames.current[peerId] || peerId,
-            audioEnabled: audioTrack?.enabled ?? true,
-            videoEnabled: videoTrack?.enabled ?? true
-          }
-        ];
-      });
-    }, 300);
+        receivedStreams.add(streamKey);
+
+        setVideos((prev) => {
+          const withoutDuplicate = prev.filter(v => v.socketId !== peerId);
+          return [
+            ...withoutDuplicate,
+            {
+              key: streamKey,
+              socketId: peerId,
+              stream: new MediaStream(stream.getTracks()),
+              muted: false,
+              username: peerNames.current[peerId] || peerId,
+              audioEnabled: audioTrack?.enabled ?? true,
+              videoEnabled: videoTrack?.enabled ?? true
+            }
+          ];
+        });
+      }, 300);
+    };
+
+    peer.onicecandidate = ({ candidate }) => {
+      if (candidate) {
+        socketRef.current.emit("signal", peerId, JSON.stringify({ ice: candidate }));
+      }
+    };
+
+    const localStream = localVideoRef.current?.srcObject;
+    if (localStream) {
+      const newVideoTrack = localStream.getVideoTracks()[0];
+      const newAudioTrack = localStream.getAudioTracks()[0];
+
+      if (newVideoTrack) {
+        newVideoTrack.enabled = video;
+        peer.addTrack(newVideoTrack, localStream);
+        await new Promise(r => setTimeout(r, 100));
+      }
+      if (newAudioTrack) {
+        newAudioTrack.enabled = audio;
+        peer.addTrack(newAudioTrack, localStream);
+        await new Promise(r => setTimeout(r, 100));
+      }
+
+      socketRef.current.emit("video-toggle", { to: peerId, enabled: video });
+      socketRef.current.emit("audio-toggle", { to: peerId, enabled: audio });
+    }
+
+    peer.onnegotiationneeded = async () => {
+      if (peer.signalingState !== "stable" || peer.isMakingOffer) return;
+      try {
+        peer.isMakingOffer = true;
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        await new Promise(r => setTimeout(r, 100));
+        socketRef.current.emit("signal", peerId, JSON.stringify({ sdp: peer.localDescription }));
+      } catch (err) {
+        console.error("Negotiation error:", err);
+      } finally {
+        peer.isMakingOffer = false;
+      }
+    };
+
+    return peer;
   };
-
-  peer.onicecandidate = ({ candidate }) => {
-    if (candidate) {
-      socketRef.current.emit("signal", peerId, JSON.stringify({ ice: candidate }));
-    }
-  };
-
-  const localStream = localVideoRef.current?.srcObject;
-  if (localStream) {
-    const newVideoTrack = localStream.getVideoTracks()[0];
-    const newAudioTrack = localStream.getAudioTracks()[0];
-
-    if (newVideoTrack) {
-      newVideoTrack.enabled = video;
-      peer.addTrack(newVideoTrack, localStream);
-      await new Promise(r => setTimeout(r, 100));
-    }
-    if (newAudioTrack) {
-      newAudioTrack.enabled = audio;
-      peer.addTrack(newAudioTrack, localStream);
-      await new Promise(r => setTimeout(r, 100));
-    }
-
-    socketRef.current.emit("video-toggle", { to: peerId, enabled: video });
-    socketRef.current.emit("audio-toggle", { to: peerId, enabled: audio });
-  }
-
-  peer.onnegotiationneeded = async () => {
-    if (peer.signalingState !== "stable" || peer.isMakingOffer) return;
-    try {
-      peer.isMakingOffer = true;
-      const offer = await peer.createOffer();
-      await peer.setLocalDescription(offer);
-      await new Promise(r => setTimeout(r, 100));
-      socketRef.current.emit("signal", peerId, JSON.stringify({ sdp: peer.localDescription }));
-    } catch (err) {
-      console.error("Negotiation error:", err);
-    } finally {
-      peer.isMakingOffer = false;
-    }
-  };
-
-  return peer;
-};
 
   // --- Handle deeting peer stream if signal issue occured ---
   const handleRoleConflict = async (peerId) => {
@@ -917,16 +909,16 @@ const createPeerConnection = async (peerId, isPolite, peerUsername) => {
           console.warn("Offer collision with", fromId);
 
           if (!peer.isPolite) {
-            console.warn("⚠️ Offer collision: impolite peer handling offer from", fromId);
+            console.warn("Offer collision: impolite peer handling offer from", fromId);
             try {
               await peer.setLocalDescription({ type: "rollback" });
               await peer.setRemoteDescription(description);
               const answer = await peer.createAnswer();
               await peer.setLocalDescription(answer);
               socketRef.current.emit("signal", fromId, JSON.stringify({ sdp: peer.localDescription }));
-              console.log("✔️ Impolite peer handled offer collision and responded with answer to", fromId);
+              console.log("Impolite peer handled offer collision and responded with answer to", fromId);
             } catch (err) {
-              console.error("❌ Failed to resolve offer collision (impolite):", err);
+              console.error("Failed to resolve offer collision (impolite):", err);
               await handleRoleConflict(fromId); // fallback only if rollback fails
             }
             return;
@@ -1073,41 +1065,41 @@ const connectToSocketServer = () => {
     });
 
     // Enhanced video toggle handler with state verification
-socketRef.current.on("video-toggle", ({ socketId, enabled }) => {
-  console.log(`Video toggle event received from ${socketId}: ${enabled}`);
-  
-  // Update UI state
-  setVideos(prev => prev.map(v => 
-    v.socketId === socketId ? { ...v, videoEnabled: enabled } : v
-  ));
-  
-  // If it's our own stream, verify the actual track state
-  if (socketId === socketIdRef.current) {
-    const videoTrack = window.localStream?.getVideoTracks()[0];
-    if (videoTrack && videoTrack.enabled !== enabled) {
-      console.warn(`State mismatch detected! Forcing track to ${enabled}`);
-      videoTrack.enabled = enabled;
-    }
-  }
-});
+    socketRef.current.on("video-toggle", ({ socketId, enabled }) => {
+      console.log(`Video toggle event received from ${socketId}: ${enabled}`);
+      
+      // Update UI state
+      setVideos(prev => prev.map(v => 
+        v.socketId === socketId ? { ...v, videoEnabled: enabled } : v
+      ));
+      
+      // If it's our own stream, verify the actual track state
+      if (socketId === socketIdRef.current) {
+        const videoTrack = window.localStream?.getVideoTracks()[0];
+        if (videoTrack && videoTrack.enabled !== enabled) {
+          console.warn(`State mismatch detected! Forcing track to ${enabled}`);
+          videoTrack.enabled = enabled;
+        }
+      }
+    });
 
     // Similar enhancement for audio toggle
-socketRef.current.on("audio-toggle", ({ socketId, enabled }) => {
-  console.log(`Audio toggle from ${socketId}: ${enabled}`);
-  
-  setVideos(prev => prev.map(v => {
-    if (v.socketId === socketId) {
-      // Mute local audio output if it's from another peer
-      if (socketId !== socketIdRef.current && v.stream) {
-        v.stream.getAudioTracks().forEach(track => {
-          track.enabled = enabled;
-        });
-      }
-      return { ...v, audioEnabled: enabled };
-    }
-    return v;
-  }));
-});
+    socketRef.current.on("audio-toggle", ({ socketId, enabled }) => {
+      console.log(`Audio toggle from ${socketId}: ${enabled}`);
+      
+      setVideos(prev => prev.map(v => {
+        if (v.socketId === socketId) {
+          // Mute local audio output if it's from another peer
+          if (socketId !== socketIdRef.current && v.stream) {
+            v.stream.getAudioTracks().forEach(track => {
+              track.enabled = enabled;
+            });
+          }
+          return { ...v, audioEnabled: enabled };
+        }
+        return v;
+      }));
+    });
 
     socketRef.current.on("user-joined", async (id, allClientIds, peerUsername) => {
       if (id === socketIdRef.current || connections[id]) return;

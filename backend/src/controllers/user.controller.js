@@ -33,7 +33,6 @@ const register = async (req, res) => {
     }
 }
 
-
 const login = async (req, res) => {
     const {username, password} = req.body;
 
@@ -84,14 +83,15 @@ const getUserHisotry = async (req, res) => {
 
 const addToHistory = async (req, res) => {
     const {token, meeting_code} = req.body;
-
+    console.log(`recieved data from authContext: ${token} ; ${meeting_code}`)
     try{
         const user = await User.findOne({token: token});
-
+        console.log(user);
         const newMeeting = new Meeting({
             user_id: user.username,
             meetingCode: meeting_code
         });
+        console.log(newMeeting);
 
         await newMeeting.save();
         res.status(httpStatus.CREATED).json({message: "Added code to history"})
