@@ -15,7 +15,7 @@ import { io } from "socket.io-client";
 import styles from "../styles/videoComponent.module.css";
 
 
-const server_url = "http://localhost:5000";
+const server_url = "https://videomeet-backend-zmzo.onrender.com";
 
 // Using STUN server for public IP
 const peerConfigConnections = {
