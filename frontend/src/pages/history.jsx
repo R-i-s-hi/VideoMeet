@@ -63,7 +63,7 @@ function History() {
                                             Meeting Code: {e.meetingCode}
                                         </Typography>
                                         <Typography variant="body2">
-                                            Date of meeting: {formatedDate(e.date)}
+                                            Date of meeting: {formatedDate(new Date(e.date).getTime())}
                                         </Typography>
                                     </CardContent>
                                 </Card>

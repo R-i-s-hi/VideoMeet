@@ -677,10 +677,20 @@ function VideoMeetComponent() {
       receivedStreams.clear();
 
       // 5. Navigate after cleanup
-      setTimeout(() => route("/home"), 100);
+       const isLoggedIn = !!localStorage.getItem("token");
+
+    // 5. Navigate after cleanup
+      setTimeout(() => {
+        if (isLoggedIn) {
+          route("/home");
+        } else {
+          route("/auth");
+        }
+      }, 100);
+
     } catch (e) {
       console.error("Error ending call:", e);
-      route("/home");
+      route("/auth");
     }
   };
 
