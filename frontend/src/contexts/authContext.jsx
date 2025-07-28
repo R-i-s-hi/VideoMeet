@@ -29,6 +29,8 @@ export const AuthProvider = ({children}) => {
                 password: password
             })
 
+            console.log("Register result:", req);
+
             if(req.status === httpStatus.CREATED) {
                 return req.data.message;
             }
@@ -45,6 +47,8 @@ export const AuthProvider = ({children}) => {
                 username: username,
                 password: password
             });
+
+            console.log("Login response:", req);
 
             if(req.status === httpStatus.OK) {
                 localStorage.setItem("token", req.data.token);

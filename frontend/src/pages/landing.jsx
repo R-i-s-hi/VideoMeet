@@ -1,7 +1,15 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import "../App.css"
 
 function LandingPage() {
+    let navigate = useNavigate();
+
+    useEffect(() => {
+    if(localStorage.getItem("token"))
+        navigate("/home");
+    },[])
+
     return ( 
         <div className="lp-container">
             <nav>

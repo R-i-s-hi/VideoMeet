@@ -22,14 +22,16 @@ const register = async (req, res) => {
             username,
             password: hashedPassword
         });
+        console.log("Saving new user:", newUser);
         await newUser.save();
 
         return res.status(httpStatus.CREATED).json({message: "User registered successfully"});
 
-    } catch(e) {
-        res.json({
-            message: `Something went wrong ${e}`
-        })
+    } catch (e) {
+        console.error("Registration failed:", e); // Log the error
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: `Something went wrong: ${e.message || e}`
+        });
     }
 }
 
@@ -56,14 +58,14 @@ const login = async (req, res) => {
             
             return res.status(httpStatus.OK).json({
                 message: "Login successful",
-                token,
+                token: token,
             });
         } else {
             return res.status(httpStatus.UNAUTHORIZED).json({message : "Invalid username or password"})
         }
 
     } catch(e) {
-        res.json({
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             message: `Something went wrong ${e}`
         })
     }

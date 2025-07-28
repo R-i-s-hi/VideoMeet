@@ -18,6 +18,11 @@ function HomeComponent() {
         navigate(`/${meetingCode}`);
     }
 
+    let handleLogout = async () => {
+        localStorage.removeItem("token")
+        navigate("/auth")
+    }
+
     return (
         <>
             <div className="navBar">
@@ -31,10 +36,10 @@ function HomeComponent() {
                         </IconButton>
                         <p style={{fontWeight: "500", fontSize: "16px"}}>History</p>
                     </div>
-                    <Button variant="outlined" style={{fontSize: "0.8rem", fontWeight: "600"}} onClick={() => {
-                        localStorage.removeItem("token")
-                        navigate("/auth")
-                    }}>
+                    <Button variant="outlined"
+                     style={{fontSize: "0.8rem", fontWeight: "600"}}
+                     onClick={handleLogout}
+                     >
                         Logout
                     </Button>
                 </div>
