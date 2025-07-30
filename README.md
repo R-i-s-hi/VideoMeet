@@ -30,6 +30,13 @@
 
 ## 🌐 Live Link
 
-Try the app live: [VideoMeet Deployment]([(https://videomeet-frontend-onjn.onrender.com)])
+[Live Link](https://videomeet-frontend-onjn.onrender.com)
 
 ---
+
+### 📫 Reach Me
+
+- 📍 Delhi, India
+- ✉️ tcrr2005@gmail.com
+- 💼 [LinkedIn](https://www.linkedin.com/in/rishabh-singh-0684882a6)
+
