@@ -22,7 +22,7 @@
     "http-status": "^2.1.0",
     "http-status-codes": "^2.3.0",
     "mongoose": "^8.16.0",
-    "nodemon": "^3.1.10",
+    "nodemon": "^3.1.11",
     "socket.io": "^4.8.1"
   }
 }
