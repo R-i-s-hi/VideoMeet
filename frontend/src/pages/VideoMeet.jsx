@@ -1253,34 +1253,36 @@ function VideoMeetComponent() {
       {askForUsername ? (
         <>
           <div className="navBar">
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <h1>VideoMeet</h1>
+            <div style={{display: "flex", alignItems: "center"}}>
+                <span style={{display: "flex", alignItems: "center", fontSize: "13.5px"}}>
+                    <h1>Video</h1><h1 style={{color: "#1976d2"}}>Meet</h1>
+                </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <IconButton onClick={() => navigate("/")}>
-                <HomeFilledIcon />
+            <div style={{backgroundColor: "#1976d2", borderRadius: "8px"}}>
+              <IconButton style={{padding: "8px 15px", color: "#ffffffed"}} onClick={() => navigate("/")}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center",gap: "0.1rem"}}>
+                  <HomeFilledIcon style={{fontSize: "13px"}} />
+                  <p style={{marginBottom: "0px", paddingTop: "1px", fontSize: "12px", fontWeight: "600"}}>Home</p>
+                </div>
               </IconButton>
-              <p style={{ fontWeight: "500", fontSize: "16px" }}>Home</p>
-            </div>
           </div>
-
+        </div>
           <div className="lobbyMeetContainer">
-            <div style={{display: "flex", justifyContent: "end", alignItems: "center"}}>
-              <div className="" style={{height: "400px", width: "700px", borderRadius: "20px"}}>
+            <div className="leftPanel">
                 <video
                   ref={localVideoRef}
                   autoPlay
                   playsInline
                   muted
-                  style={{ width: "100%", height: "auto",aspectRatio: "16/9", objectFit: "cover", border: "4px solid gray", borderRadius: "20px", boxShadow: "0px 3px 50px rgba(0, 0, 0, 0.05)" }}
                 />
-              </div>
             </div>
-            <div style={{display: "inline-block", alignItems: "center", marginTop: "5rem"}}>
-              <img srcSet="/lobby.png" style={{width: "60%"}} alt="img" />
+            <div className="rightPanel">
+              <div style={{display: "flex", flexDirection: "column", width: "100%", justifyContent: "end", alignItems: "center"}}>
+
+                <img srcSet="/lobby.png" style={{width: "60%", height: "auto"}} alt="img" />
                 <div style={{ display: "flex", gap: "10px" }}>
                   <TextField
-                    style={{ minWidth: "200px" }}
+                    style={{ minWidth: "200px", fontSize: "13px" }}
                     id="outlined-basic"
                     label="Username"
                     variant="outlined"
@@ -1288,7 +1290,7 @@ function VideoMeetComponent() {
                     onChange={(e) => setUsername(e.target.value)}
                   />
                   <Button
-                    style={{ paddingInline: "26px", fontSize: "0.9rem" }}
+                    style={{ paddingInline: "26px", fontSize: "11px", fontWeight: "600" }}
                     variant="contained"
                     onClick={connect}
                     disabled={!username}
@@ -1298,6 +1300,7 @@ function VideoMeetComponent() {
                 </div>
               </div>
             </div>
+          </div>
         </>
       ) : (
         <div className={styles.meetVideoContainer}>

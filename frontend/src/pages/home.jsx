@@ -27,17 +27,19 @@ function HomeComponent() {
         <>
             <div className="navBar">
                 <div style={{display: "flex", alignItems: "center"}}>
-                    <h1>VideoMeet</h1>
+                    <span style={{display: "flex", alignItems: "center", fontSize: "13.5px"}}>
+                        <h1>Video</h1><h1 style={{color: "#1976d2"}}>Meet</h1>
+                    </span>
                 </div>
-                <div style={{display: "flex", alignItems: "center", gap: "2rem"}}>
+                <div className="nav-btns">
                     <div style={{display: "flex", alignItems: "center"}}>
                         <IconButton onClick={() => navigate("/history")}>
                             <RestoreIcon/>
                         </IconButton>
-                        <p style={{fontWeight: "500", fontSize: "16px"}}>History</p>
+                        <p className="history-tag" style={{fontWeight: "500", fontSize: "16px"}}>History</p>
                     </div>
                     <Button variant="outlined"
-                     style={{fontSize: "0.8rem", fontWeight: "600"}}
+                     style={{fontSize: "13.5px", fontWeight: "600", padding: "9px 20px 5px"}}
                      onClick={handleLogout}
                      >
                         Logout
@@ -47,16 +49,16 @@ function HomeComponent() {
 
             <div className="meetContainer">
                 <div className="leftPanel">
-                    <div className="">
-                        <h1 style={{fontSize: "40px", marginBottom: "1rem"}}>Providing <span style={{color:"#1976d2"}}>Quality Video Call</span> <br></br> Just Like Quality Education</h1>
+                    <div>
+                        <h1 className="home-heading">Providing <span style={{color:"#1976d2"}}>Quality Video Call</span> <br></br> Just Like <br /> Quality Education</h1>
                         <div style={{display: "flex", gap: "10px"}}>
-                            <TextField style={{minWidth: '300px'}} onChange={e => setMeetingCode(e.target.value)} id="outlined-basic" lable="Meeting Code" variant="outlined"></TextField>
-                            <Button style={{paddingInline: "26px", fontSize: "0.9rem"}} onClick={handleJoinVideoCall} variant="contained" disabled={!meetingCode}>Join</Button>
+                            <TextField style={{width: "70%", padding: '10px 12px 10px 0px'}} onChange={e => setMeetingCode(e.target.value)} id="outlined-basic" lable="Meeting Code" variant="outlined"></TextField>
+                            <Button style={{width: "30%", margin: "10px 0px", fontSize: "0.75rem", fontWeight: "600"}} onClick={handleJoinVideoCall} variant="contained" disabled={!meetingCode}>Join</Button>
                         </div>
                     </div>
                 </div>
                 <div className="rightPanel">
-                    <img srcSet="/logo3.png" alt="img" />
+                    <img srcSet="/homeimage.svg" alt="img" />
                 </div>
             </div>
         </>
