@@ -10,8 +10,7 @@ export const AuthContext = createContext({});
 // cretating a axios instatnce which provide baseURL,
 // which we will use multiple times 
 const client = axios.create({
-    // baseURL: "https://videomeet-backend-zmzo.onrender.com/api/v1/users"
-    baseURL: "http://localhost:5000"
+    baseURL: "https://videomeet-backend-zmzo.onrender.com/api/v1/users"
 })
 
 
