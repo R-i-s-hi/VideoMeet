@@ -15,8 +15,7 @@ import { useNavigate } from "react-router";
 import { io } from "socket.io-client";
 import styles from "../styles/videoComponent.module.css";
 
-const server_url = "http://localhost:5000";
-/** "https://videomeet-backend-zmzo.onrender.com"; */
+const server_url = "https://videomeet-backend-zmzo.onrender.com";
 
 // Using STUN server for public IP
 const peerConfigConnections = {
@@ -1084,7 +1083,7 @@ function VideoMeetComponent() {
 
   // --- Connects the user to the Socket.IO backend & Registers all important event listeners. (used to exchange SDP/ICE Candidates & handle other events) ---
   const connectToSocketServer = () => {
-    socketRef.current = io.connect(server_url);
+    socketRef.current = io.connect(server_url,{withCredentials: true});
 
     // Enhanced signal handler with stream state tracking
     socketRef.current.on("signal", gotMessageFromServer);

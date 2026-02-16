@@ -10,9 +10,9 @@ let socketIdToUsername = {};
 export const connectToSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: "https://videomeet-frontend-onjn.onrender.com" /** * */,
       methods: ["GET", "POST"],
-      allowedHeaders: ["*"],
+      // allowedHeaders: ["*"],
       credentials: true,
     },
   });
