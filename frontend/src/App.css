@@ -221,6 +221,27 @@
   margin-bottom: 1rem;
 }
 
+.css-53g0n7-MuiButtonBase-root-MuiIconButton-root {
+  padding: 0px !important;
+}
+
+.css-1umw9bq-MuiSvgIcon-root {
+  height: 0.55em !important;
+  width: 0.6em !important;
+
+}
+
+.homeBtn {
+  background-color: #1976d2;
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+}
+
+.homeBtn:hover {
+  background-color: #1976d2ee;
+}
+
 .css-16wblaj-MuiInputBase-input-MuiOutlinedInput-input {
   padding: 10px 12px !important;
   font-weight: 600;
@@ -229,6 +250,11 @@
 
 .leftPanel .css-74d805-MuiButtonBase-root-MuiButton-root.Mui-disabled {
   padding: 10px 12px !important;
+}
+
+.leftPanel > div > div {
+  display: flex;
+  gap: 10px;
 }
 
 .rightPanel {
@@ -253,6 +279,34 @@
   padding: inherit;
   border-radius: 8px;
 }
+
+.login-gif {
+  width: 400px;
+  height: 400px;
+}
+
+.authContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7rem;
+  height: 100vh;
+}
+
+.authimg {
+  display: flex;
+  justify-content: center;
+}
+
+.authForm {
+  display: block;
+  padding: 3rem 3rem 4rem;
+  width: 25rem;
+  border: 0.8px solid #d3d3d3;
+  border-radius: 4.3rem;
+  box-shadow: 4px 4px 10px 1px rgba(0, 0, 0, 0.06);
+}
+
 
 @media(max-width: 1278px) {
   .lp-container nav {
@@ -339,22 +393,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.leftPanel p {
-  font-size: 35px;
-}
+  }
+  .leftPanel p {
+    font-size: 35px;
+  }
+  .rightPanel {
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rightPanel > img {
+    height: 230px;
+    width: 230px;
+  }
+  .authimg {
+    display: none;
+  }
 
-.rightPanel {
-  width: 100%;
-  height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.rightPanel > img {
-  height: 230px;
-  width: 230px;
-}
 }
 @media(max-width: 830px) {
   .lp-main {
@@ -408,6 +465,9 @@
   .history-tag {
     display: none;
   }
+  .nav-btns > div {
+    padding-inline: 11px !important;
+  }
 }
 @media(max-width: 630px) {
   .lobbyMeetContainer .leftPanel {
@@ -429,6 +489,9 @@
 @media(max-width: 585px) {
   .navBar {
     padding-inline: 2rem 1rem;
+  }
+  .meetContainer {
+    margin-inline: 4rem;
   }
 }
 @media(max-width: 570px) {
@@ -499,5 +562,35 @@
   }
   .lp-main {
     margin-inline: 2rem;
+  }
+  .rightPanel > img {
+    height: 210px;
+    width: 200px;
+  }
+  .authForm {
+    width: 90%;
+  }
+}
+@media(max-width: 380px) {
+  .leftPanel > div > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    width: 100%;
+  }
+  .leftPanel .css-74d805-MuiButtonBase-root-MuiButton-root.Mui-disabled {
+    padding: 10px 12px !important;
+    width: 100% !important;
+  }
+  .css-16wblaj-MuiInputBase-input-MuiOutlinedInput-input {
+    width: 100% !important;
+    padding-block: 8px !important;
+  }
+  .css-1xp5r68-MuiFormControl-root-MuiTextField-root {
+    width: 100% !important;
+    padding-inline: 0px !important;
+  }
+  .css-1xp5r68-MuiFormControl-root-MuiTextField-root {
+    padding-inline: 0px;
   }
 }

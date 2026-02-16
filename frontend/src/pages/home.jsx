@@ -32,14 +32,14 @@ function HomeComponent() {
                     </span>
                 </div>
                 <div className="nav-btns">
-                    <div style={{display: "flex", alignItems: "center"}}>
-                        <IconButton onClick={() => navigate("/history")}>
+                    <div style={{cursor: "pointer",display: "flex", alignItems: "center", gap: "0.2rem", paddingInline: "17.5px 23px", height: "-webkit-fill-available", border: "1px solid gray", borderRadius: "8px", color: "gray"}} onClick={() => navigate("/history")}>
+                        <IconButton>
                             <RestoreIcon/>
                         </IconButton>
-                        <p className="history-tag" style={{fontWeight: "500", fontSize: "16px"}}>History</p>
+                        <p className="history-tag" style={{fontWeight: "500", fontSize: "12px"}}>History</p>
                     </div>
                     <Button variant="outlined"
-                     style={{fontSize: "13.5px", fontWeight: "600", padding: "9px 20px 5px"}}
+                     style={{fontSize: "11.5px", fontWeight: "600", padding: "9px 23px 5px", borderRadius: "8px", height: "-webkit-fill-available"}}
                      onClick={handleLogout}
                      >
                         Logout
@@ -51,7 +51,7 @@ function HomeComponent() {
                 <div className="leftPanel">
                     <div>
                         <h1 className="home-heading">Providing <span style={{color:"#1976d2"}}>Quality Video Call</span> <br></br> Just Like <br /> Quality Education</h1>
-                        <div style={{display: "flex", gap: "10px"}}>
+                        <div>
                             <TextField style={{width: "70%", padding: '10px 12px 10px 0px'}} onChange={e => setMeetingCode(e.target.value)} id="outlined-basic" lable="Meeting Code" variant="outlined"></TextField>
                             <Button style={{width: "30%", margin: "10px 0px", fontSize: "0.75rem", fontWeight: "600"}} onClick={handleJoinVideoCall} variant="contained" disabled={!meetingCode}>Join</Button>
                         </div>

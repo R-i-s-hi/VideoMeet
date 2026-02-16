@@ -4,7 +4,7 @@ import {
   Box, Button, FormControl, TextField,
   Avatar, Snackbar
 } from "@mui/material";
-
+import { Link } from "react-router-dom";
 import { AuthContext } from "../contexts/authContext";
 
 
@@ -80,41 +80,45 @@ export default function Authentication() {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <div>
-        <img
-          style={{ width: "60vw", height: "100vh" }} src="/authimage.jpg" alt="auth"
-        />
+    <div className="authContainer">
+      <div className="authimg">
+        <img src="Authentication.gif" alt="Login animation" class="login-gif" />
       </div>
-      <div
-        style={{
-          display: "block",
-          paddingInline: "1.5rem",
-          paddingBlock: "2.5rem",
-          marginLeft: "6rem",
-          width: "25rem",
-          border: "0.8px solid #d3d3d3",
-          borderRadius: "0.3rem",
-          boxShadow: "4px 4px 10px 1px rgba(0, 0, 0, 0.06)",
-        }}
-      >
+
+      <div className="authForm">
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
           <Avatar sx={{ bgcolor: "secondary.main", mb: 2, }}>
             <LockOutlineRounded />
           </Avatar>
+
           <Box>
+
             <Button
               variant={formState === 0 ? "contained" : "text"}
               onClick={() => setFormState(0)}
+              sx ={{
+                fontWeight: 'bold',
+                fontSize: '11px',
+                borderRadius: '15px',
+                padding: '6px 27px'
+              }}
             >
               Login
             </Button>
+
             <Button
               variant={formState === 1 ? "contained" : "text"}
               onClick={() => setFormState(1)}
+              sx ={{
+                fontWeight: 'bold',
+                fontSize: '11px',
+                borderRadius: '15px',
+                padding: '6px 16px'
+              }}
             >
               Register
             </Button>
+
           </Box>
         </Box>
 
@@ -124,7 +128,6 @@ export default function Authentication() {
             <FormControl>
               
               <TextField
-                
                 name="fullname"
                 label="full name"
                 value={name}
@@ -133,6 +136,17 @@ export default function Authentication() {
                 id="outlined-basic"
                 variant="outlined"
                 onChange={(e) => setName(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '17px', 
+                    fontSize: '14px',
+                    padding: '0px',
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                  }
+                }}
               />
             </FormControl>
           )}
@@ -149,6 +163,17 @@ export default function Authentication() {
               id="outlined-basic"
               variant="outlined"
               onChange={(e) => setUsername(e.target.value)}
+              sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '17px', 
+                    fontSize: '14px',
+                    padding: '0px',
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                  }
+                }}
             />
           </FormControl>
 
@@ -165,16 +190,44 @@ export default function Authentication() {
               id="outlined-basic"
               variant="outlined"
               onChange={(e) => setPassword(e.target.value)}
+              sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '17px', 
+                    fontSize: '14px',
+                    padding: '0px',
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                  }
+                }}
             />
           </FormControl>
 
           {err && <p style={{ color: "red" }}>{err}</p>}
 
-          <Button type="submit" fullWidth variant="contained" onClick={handleAuth}>
+          <Button type="submit" fullWidth variant="contained" onClick={handleAuth}
+            sx={{
+              fontSize: '12px',
+              padding: '8px 16px',
+              borderRadius: '14px',
+              fontWeight: 600,
+            }}
+          >
             {formState === 0 ? "Login" : "Register"}
           </Button>
 
+
         </Box>
+        
+        <Link to="/" style={{ textDecoration: "none", color: "#b8b8b8", fontSize: '12px', fontWeight: '500', display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+          <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.3rem'}}>
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+              <path d="M4 11.9966L20.0014 11.9966M9.99599 6L4 11.9998L9.99599 18" stroke="#b8b8b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+              <span>Back to Home</span>
+          </div>
+          </Link>
 
         <Snackbar
           open={open}

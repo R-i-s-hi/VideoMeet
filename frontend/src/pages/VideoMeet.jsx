@@ -15,7 +15,8 @@ import { useNavigate } from "react-router";
 import { io } from "socket.io-client";
 import styles from "../styles/videoComponent.module.css";
 
-const server_url = "https://videomeet-backend-zmzo.onrender.com";
+const server_url = "http://localhost:5000";
+/** "https://videomeet-backend-zmzo.onrender.com"; */
 
 // Using STUN server for public IP
 const peerConfigConnections = {
@@ -40,7 +41,7 @@ function VideoMeetComponent() {
   let [videoAvailable, setVideoAvailable] = useState(true); // video toogle
   let [audioAvailable, setAudioAvailable] = useState(true); // audio toogle
   let [screen, setScreen] = useState(false); // screenShare toogle
-  let [showModal, setShowModal] = useState(true); // chatbox toogle
+  let [showModal, setShowModal] = useState(false); // chatbox toogle
 
   let [messages, setMessages] = useState([]); // all chat messages
   let [message, setMessage] = useState(""); // input chat message we will send
@@ -744,11 +745,6 @@ function VideoMeetComponent() {
           autoPlay
           playsInline
           muted={socketId === socketIdRef.current}
-          style={{
-            width: "100%",
-            maxWidth: "1010px",
-            backgroundColor: "black",
-          }}
         />
         <p>
           {username} {!videoEnabled ? "(Video Off)" : ""}
@@ -1088,7 +1084,7 @@ function VideoMeetComponent() {
 
   // --- Connects the user to the Socket.IO backend & Registers all important event listeners. (used to exchange SDP/ICE Candidates & handle other events) ---
   const connectToSocketServer = () => {
-    socketRef.current = io.connect(server_url, { secure: false });
+    socketRef.current = io.connect(server_url);
 
     // Enhanced signal handler with stream state tracking
     socketRef.current.on("signal", gotMessageFromServer);
@@ -1252,22 +1248,26 @@ function VideoMeetComponent() {
     <div>
       {askForUsername ? (
         <>
-          <div className="navBar">
+          <div className="navBar ">
+
             <div style={{display: "flex", alignItems: "center"}}>
                 <span style={{display: "flex", alignItems: "center", fontSize: "13.5px"}}>
                     <h1>Video</h1><h1 style={{color: "#1976d2"}}>Meet</h1>
                 </span>
             </div>
-            <div style={{backgroundColor: "#1976d2", borderRadius: "8px"}}>
-              <IconButton style={{padding: "8px 15px", color: "#ffffffed"}} onClick={() => navigate("/")}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center",gap: "0.1rem"}}>
-                  <HomeFilledIcon style={{fontSize: "13px"}} />
+
+            <div className="homeBtn">
+              <IconButton style={{padding: "8px 15px !important", color: "#ffffffed"}} onClick={() => navigate("/")}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center",gap: "0.1rem", marginTop: "-5px"}}>
+                  <HomeFilledIcon style={{fontSize: "20px"}} />
                   <p style={{marginBottom: "0px", paddingTop: "1px", fontSize: "12px", fontWeight: "600"}}>Home</p>
                 </div>
               </IconButton>
+            </div>
+
           </div>
-        </div>
           <div className="lobbyMeetContainer">
+            
             <div className="leftPanel">
                 <video
                   ref={localVideoRef}
@@ -1276,13 +1276,25 @@ function VideoMeetComponent() {
                   muted
                 />
             </div>
+
             <div className="rightPanel">
               <div style={{display: "flex", flexDirection: "column", width: "100%", justifyContent: "end", alignItems: "center"}}>
 
                 <img srcSet="/lobby.png" style={{width: "60%", height: "auto"}} alt="img" />
+
                 <div style={{ display: "flex", gap: "10px" }}>
                   <TextField
-                    style={{ minWidth: "200px", fontSize: "13px" }}
+                    sx={{
+                      minWidth: 200,
+                      '& .MuiInputBase-input': {
+                        fontSize: 13 ,
+                      },
+                      '& .MuiInputLabel-root': {
+                        fontSize: 13,
+                        fontWeight: 'bold',
+                        paddingTop: '-3px',
+                      },
+                    }}
                     id="outlined-basic"
                     label="Username"
                     variant="outlined"
@@ -1298,8 +1310,10 @@ function VideoMeetComponent() {
                     connect
                   </Button>
                 </div>
+
               </div>
             </div>
+
           </div>
         </>
       ) : (
@@ -1317,8 +1331,8 @@ function VideoMeetComponent() {
           </div>
 
           {/* peer video & chatbox */}
-          <div>
-            {/* video and control pannel */}
+          <div className={styles.meetPeerVideoAndChat}>
+
             <div className={styles.videoWrapper}>
               {/* peer videos */}
               <div
@@ -1349,12 +1363,14 @@ function VideoMeetComponent() {
 
               {/* chat box */}
               {showModal && (
-                <div className={styles.chatRoom}>
+                <div className={`${styles.chatRoom} ${showModal ? styles.show : ""}`}>
                   <div className={styles.chatContainer}>
+
                     <h3 style={{ fontSize: "20px", marginBottom: "1rem" }}>
                       Chat messages
                     </h3>
                     <hr style={{ opacity: "0.5", marginBottom: "1rem" }}></hr>
+                    
                     <div className={styles.chatDisplay}>
                       {messages.length > 0 ? (
                         messages.map((item, index) => (
@@ -1386,66 +1402,50 @@ function VideoMeetComponent() {
                       )}
                       <div ref={scrollAnchor} />
                     </div>
-                    <div className={styles.chatInput}>
-                      <TextField
-                        sx={{
-                          width: "315px",
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: "50px",
-                            "&.Mui-focused fieldset": {
-                              border: "1px solid gray",
-                            },
-                          },
-                          "& fieldset": {
-                            borderRadius: "50px",
-                          },
-                          "& input": {
-                            padding: "15px 25px",
-                          },
-                        }}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="send your chat"
-                      />
-                      <button
-                        onClick={sendMessage}
-                        style={{ width: "fit-content" }}
-                      >
-                        <SendIcon style={{ color: "gray", fontSize: "20px" }} />
-                      </button>
-                    </div>
+
                   </div>
+
+                  <div className={styles.chatInput} id={styles.meetingChatInput}>
+                    <TextField
+                      className={styles.chatTextField}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="send your chat"
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "23px"
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={sendMessage}
+                    >
+                      <SendIcon style={{ color: "white", fontSize: "20px" }} />
+                    </button>
+                  </div>
+
                 </div>
               )}
             </div>
 
-            {/* button box */}
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: "500",
-                  opacity: "0.8",
-                  color: "white",
-                  left: "1.5rem",
-                  bottom: "1.5rem",
-                  position: "absolute",
-                }}
-              >
-                {time}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;{socketIdRef.current}
+            <div className={styles.buttonBox}>
+              
+              <div className={styles.timeDisplay}>
+                {time}&nbsp;&nbsp;&nbsp;
               </div>
+
               <div className={styles.buttonContainer}>
                 <IconButton
                   id={video ? styles.btn1 : styles.btn2}
                   onClick={video ? handleVideoOff : handleVideo}
-                  style={{ color: "white" }}
+                  style={{ color: "white", width: "38px", height: "38px" }}
                 >
                   {video ? <VideocamIcon /> : <VideocamOffIcon />}
                 </IconButton>
                 <IconButton
                   id={audio ? styles.btn1 : styles.btn2}
                   onClick={handleAudio}
-                  style={{ color: "white" }}
+                  style={{ color: "white", width: "38px", height: "38px" }}
                 >
                   {audio ? <MicIcon /> : <MicOffIcon />}
                 </IconButton>
@@ -1453,29 +1453,43 @@ function VideoMeetComponent() {
                   <IconButton
                     id={screen ? styles.btn1 : styles.btn2}
                     onClick={handleScreen}
-                    style={{ color: "white" }}
+                    style={{ color: "white", width: "38px", height: "38px" }}
                   >
                     {screen ? <ScreenShareIcon /> : <StopScreenShareIcon />}
                   </IconButton>
                 )}
-                <Badge badgeContent={newMessages} max={999} color="secondary">
+                <IconButton
+                  id={styles.callEndBtn}
+                  onClick={handleCallEnd}
+                  style={{ color: "white", width: "38px", height: "38px" }}
+                >
+                  <CallEndIcon />
+                </IconButton>
+                <Badge className={styles.mobileMessageIcon} badgeContent={newMessages} max={999} color="secondary">
                   <IconButton
                     id={styles.btn1}
                     onClick={() => setShowModal(!showModal)}
-                    style={{ color: "white" }}
+                    style={{ color: "white", width: "38px", height: "38px"  }}
                   >
                     <ChatIcon />
                   </IconButton>
                 </Badge>
-                <IconButton
-                  id={styles.callEndBtn}
-                  onClick={handleCallEnd}
-                  style={{ color: "white" }}
-                >
-                  <CallEndIcon />
-                </IconButton>
               </div>
+
+              <div className= {styles.messageIcon}>
+                <Badge badgeContent={newMessages} max={999} color="secondary">
+                  <IconButton
+                    id={styles.btn1}
+                    onClick={() => setShowModal(!showModal)}
+                    style={{ color: "white", width: "38px", height: "38px"  }}
+                  >
+                    <ChatIcon />
+                  </IconButton>
+                </Badge>
+              </div>
+
             </div>
+            
           </div>
         </div>
       )}
