@@ -15,7 +15,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: 100vh;
+    height: 100dvh;
 }
 
 .videoWrapper {
@@ -67,7 +67,7 @@
 }
 
 .messageIcon svg, .buttonContainer svg {
-    font-size: 2.2rem;
+    font-size: 1.2rem;
 }
 
 .messageIcon {
@@ -79,6 +79,10 @@
 
 .buttonContainer svg, .messageIcon svg, .mobileMessageIcon svg{
     cursor: pointer;
+}
+
+.buttonContainer svg {
+    width: 18px;
 }
 
 .peerVideoContainer {
@@ -193,6 +197,11 @@
     background-color: #333537;
 }
 
+.chatInput svg {
+    width: 11px;
+    color: white;
+}
+
 .css-1xp5r68-MuiFormControl-root-MuiTextField-root {
     width: 84% !important;
 }
@@ -293,6 +302,21 @@
         padding-left: 1rem;
     }
 }
+@media (max-width: 850px) {
+    .twoRowGrid {
+        grid-template-columns: repeat(1, 1fr);
+        grid-template-rows: repeat(1, 1fr);
+    }
+    .videoWrapper {
+        overflow-y: scroll;
+    }
+    .videoWrapper::-webkit-scrollbar {
+        display: none !important;
+    }
+    .conferenceView {
+        height: fit-content;
+    }
+}
 @media (max-width: 815px) {
     .meetUserVideo {
         height: 6rem;
@@ -316,18 +340,5 @@
     }
     .buttonContainer {
         width: 100%;
-    }
-    .twoRowGrid {
-        grid-template-columns: repeat(1, 1fr);
-        grid-template-rows: repeat(1, 1fr);
-    }
-    .videoWrapper {
-        overflow-y: scroll;
-    }
-    .videoWrapper::-webkit-scrollbar {
-        display: none !important;
-    }
-    .conferenceView {
-        height: fit-content;
     }
 }

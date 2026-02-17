@@ -1258,13 +1258,14 @@ function VideoMeetComponent() {
             <div className="homeBtn">
               <IconButton style={{padding: "8px 15px !important", color: "#ffffffed"}} onClick={() => navigate("/")}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center",gap: "0.1rem", marginTop: "-5px"}}>
-                  <HomeFilledIcon style={{fontSize: "20px"}} />
-                  <p style={{marginBottom: "0px", paddingTop: "1px", fontSize: "12px", fontWeight: "600"}}>Home</p>
+                  <HomeFilledIcon style={{fontSize: "12px"}} />
+                  <p style={{marginBottom: "0px", paddingTop: "1px", fontSize: "11px", fontWeight: "600"}}>Home</p>
                 </div>
               </IconButton>
             </div>
 
           </div>
+
           <div className="lobbyMeetContainer">
             
             <div className="leftPanel">
@@ -1286,7 +1287,8 @@ function VideoMeetComponent() {
                     sx={{
                       minWidth: 200,
                       '& .MuiInputBase-input': {
-                        fontSize: 13 ,
+                        fontSize: 13,
+                        padding: '10.5px 14px',
                       },
                       '& .MuiInputLabel-root': {
                         fontSize: 13,
@@ -1333,6 +1335,7 @@ function VideoMeetComponent() {
           <div className={styles.meetPeerVideoAndChat}>
 
             <div className={styles.videoWrapper}>
+              
               {/* peer videos */}
               <div
                 className={`${styles.conferenceView} ${
@@ -1363,6 +1366,7 @@ function VideoMeetComponent() {
               {/* chat box */}
               {showModal && (
                 <div className={`${styles.chatRoom} ${showModal ? styles.show : ""}`}>
+                  
                   <div className={styles.chatContainer}>
 
                     <h3 style={{ fontSize: "20px", marginBottom: "1rem" }}>
@@ -1419,12 +1423,13 @@ function VideoMeetComponent() {
                     <button
                       onClick={sendMessage}
                     >
-                      <SendIcon style={{ color: "white", fontSize: "20px" }} />
+                      <SendIcon style={{ color: "white", fontSize: "12px" }} />
                     </button>
                   </div>
 
                 </div>
               )}
+
             </div>
 
             <div className={styles.buttonBox}>
