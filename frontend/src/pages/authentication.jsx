@@ -137,7 +137,7 @@ export default function Authentication() {
                 variant="outlined"
                 onChange={(e) => setName(e.target.value)}
                 sx={{
-                  '& .MuiInputBase-root': {
+                  '& .MuiInputBase-input': {
                     padding: '11.5px 14px'
                   },
                   '& .MuiOutlinedInput-root': {
@@ -167,7 +167,7 @@ export default function Authentication() {
               variant="outlined"
               onChange={(e) => setUsername(e.target.value)}
               sx={{
-                '& .MuiInputBase-root': {
+                '& .MuiInputBase-input': {
                   padding: '11.5px 14px'
                 },
                 '& .MuiOutlinedInput-root': {
@@ -197,7 +197,7 @@ export default function Authentication() {
               variant="outlined"
               onChange={(e) => setPassword(e.target.value)}
               sx={{
-                '& .MuiInputBase-root': {
+                '& .MuiInputBase-input': {
                   padding: '11.5px 14px'
                 },
                 '& .MuiOutlinedInput-root': {
