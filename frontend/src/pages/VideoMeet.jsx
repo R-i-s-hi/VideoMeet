@@ -1319,6 +1319,7 @@ function VideoMeetComponent() {
         </>
       ) : (
         <div className={styles.meetVideoContainer}>
+          
           {/* user video */}
           <div>
             <video
@@ -1417,6 +1418,9 @@ function VideoMeetComponent() {
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           borderRadius: "23px"
+                        },
+                        '& .MuiInputBase-input': {
+                          padding: '10.5px 14px'
                         }
                       }}
                     />
@@ -1495,6 +1499,7 @@ function VideoMeetComponent() {
             </div>
             
           </div>
+
         </div>
       )}
     </div>

@@ -33,13 +33,19 @@ function HomeComponent() {
                 </div>
                 <div className="nav-btns">
                     <div style={{cursor: "pointer",display: "flex", alignItems: "center", gap: "0.2rem", paddingInline: "17.5px 23px", height: "-webkit-fill-available", border: "1px solid gray", borderRadius: "8px", color: "gray"}} onClick={() => navigate("/history")}>
-                        <IconButton>
-                            <RestoreIcon/>
+                        <IconButton
+                            sx={{
+                                padding: 0,
+                            }}
+                        >
+                            <RestoreIcon
+                                sx={{fontSize: 11}}
+                            />
                         </IconButton>
-                        <p className="history-tag" style={{fontWeight: "500", fontSize: "12px"}}>History</p>
+                        <p className="history-tag" style={{fontWeight: "500", fontSize: "10.5px"}}>History</p>
                     </div>
                     <Button variant="outlined"
-                     style={{fontSize: "11.5px", fontWeight: "600", padding: "9px 23px 5px", borderRadius: "8px", height: "-webkit-fill-available"}}
+                     style={{fontSize: "10px", fontWeight: "600", padding: "9px 23px 5px", borderRadius: "8px", height: "-webkit-fill-available"}}
                      onClick={handleLogout}
                      >
                         Logout

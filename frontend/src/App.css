@@ -578,6 +578,14 @@
     gap: 0px;
     width: 100%;
   }
+  .leftPanel > div > div > Button {
+    width: 100%;
+    padding: 7px 16px !important;
+  }
+  .leftPanel > div > div > div {
+    width: 100%;
+    padding: 0;
+  }
   .leftPanel .css-74d805-MuiButtonBase-root-MuiButton-root.Mui-disabled {
     padding: 10px 12px !important;
     width: 100% !important;
