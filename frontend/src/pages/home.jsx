@@ -58,7 +58,7 @@ function HomeComponent() {
                     <div>
                         <h1 className="home-heading">Providing <span style={{color:"#1976d2"}}>Quality Video Call</span> <br></br> Just Like <br /> Quality Education</h1>
                         <div>
-                            <TextField style={{width: "70%", padding: '10px 12px 10px 0px'}} onChange={e => setMeetingCode(e.target.value)} id="outlined-basic" lable="Meeting Code" variant="outlined"></TextField>
+                            <TextField sx={{'& .MuiInputBase-input': { padding: '10.5px 16px',}}} style={{width: "70%"}} onChange={e => setMeetingCode(e.target.value)} id="outlined-basic" lable="Meeting Code" variant="outlined"></TextField>
                             <Button style={{width: "30%", margin: "10px 0px", fontSize: "0.75rem", fontWeight: "600"}} onClick={handleJoinVideoCall} variant="contained" disabled={!meetingCode}>Join</Button>
                         </div>
                     </div>
