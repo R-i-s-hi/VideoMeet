@@ -137,6 +137,9 @@ export default function Authentication() {
                 variant="outlined"
                 onChange={(e) => setName(e.target.value)}
                 sx={{
+                  '& .MuiInputBase-root': {
+                    padding: '11.5px 14px'
+                  },
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '17px', 
                     fontSize: '14px',
@@ -164,16 +167,19 @@ export default function Authentication() {
               variant="outlined"
               onChange={(e) => setUsername(e.target.value)}
               sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '17px', 
-                    fontSize: '14px',
-                    padding: '0px',
-                  },
-                  '& .MuiInputLabel-root': {
-                    fontWeight: 'bold',
-                    fontSize: '13px',
-                  }
-                }}
+                '& .MuiInputBase-root': {
+                  padding: '11.5px 14px'
+                },
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '17px', 
+                  fontSize: '14px',
+                  padding: '0px',
+                },
+                '& .MuiInputLabel-root': {
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                }
+              }}
             />
           </FormControl>
 
@@ -191,16 +197,19 @@ export default function Authentication() {
               variant="outlined"
               onChange={(e) => setPassword(e.target.value)}
               sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '17px', 
-                    fontSize: '14px',
-                    padding: '0px',
-                  },
-                  '& .MuiInputLabel-root': {
-                    fontWeight: 'bold',
-                    fontSize: '13px',
-                  }
-                }}
+                '& .MuiInputBase-root': {
+                  padding: '11.5px 14px'
+                },
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '17px', 
+                  fontSize: '14px',
+                  padding: '0px',
+                },
+                '& .MuiInputLabel-root': {
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                }
+              }}
             />
           </FormControl>
 
